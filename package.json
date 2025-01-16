@@ -1,0 +1,45 @@
+{
+  "name": "prydwen3",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "build/server.js",
+  "scripts": {
+    "dev:frontend": "vite",
+    "dev:backend": "nodemon server/server.ts",
+    "dev:tailwind": "tailwindcss -i ./src/input.css -o ./src/output.css --watch",
+    "dev": "concurrently 'npm:dev:frontend' 'npm:dev:backend' 'npm:dev:tailwind'",
+    "build": "vite build && tsc",
+    "preview": "vite preview",
+    "start": "node --env-file=.env build/server/server.js",
+    "reload": "npm run build && npm run start"
+  },
+  "dependencies": {
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-file-routing": "^3.0.3",
+    "front-matter": "^4.0.2",
+    "helmet": "^8.0.0",
+    "highlight.js": "^11.11.1",
+    "marked": "^15.0.6",
+    "pino": "^9.5.0",
+    "pino-http": "^10.3.0",
+    "pino-pretty": "^13.0.0",
+    "tailwindcss-unimportant": "^2.1.1",
+    "typescript": "^5.7.2",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.16",
+    "@types/express": "^5.0.0",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "concurrently": "^9.1.0",
+    "glob": "^11.0.1",
+    "nodemon": "^3.1.7",
+    "tailwindcss": "^3.4.17",
+    "ts-node": "^10.9.2",
+    "vite": "^6.0.1",
+    "vite-plugin-markdown": "^2.2.0"
+  }
+}

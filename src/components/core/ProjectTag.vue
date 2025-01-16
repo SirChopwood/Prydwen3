@@ -1,0 +1,34 @@
+<script lang="ts">
+import {defineComponent} from 'vue'
+
+const Tags = {
+  "Solo": "red", //  `<div class="bg-red-950 hover:bg-red-900 outline-red-600 text-red-100">`
+  "Unreal Engine": "blue", //  `<div class="bg-blue-950 hover:bg-blue-900 outline-blue-600 text-blue-100">`
+  "Teamwork": "yellow", //  `<div class="bg-yellow-950 hover:bg-yellow-900 outline-yellow-600 text-yellow-100">`
+  "Blender": "orange", //  `<div class="bg-orange-950 hover:bg-orange-900 outline-orange-600 text-orange-100">`
+  "NodeJS": "green", //  `<div class="bg-green-950 hover:bg-green-900 outline-green-600 text-green-100">`
+}
+
+export default defineComponent({
+  name: "ProjectTag",
+  props: {
+    tag: String
+  },
+  mounted() {
+    if (Tags[this.tag]) {
+      let colour = Tags[this.tag]
+      this.$refs.Tag.textContent = this.tag
+      this.$refs.Tag.classList.replace(`bg-neutral-950`,`bg-${colour}-950`)
+      this.$refs.Tag.classList.replace(`hover:bg-neutral-900`,`hover:bg-${colour}-900`)
+      this.$refs.Tag.classList.replace(`outline-neutral-600`,`outline-${colour}-600`)
+      this.$refs.Tag.classList.replace(`text-neutral-100`,`text-${colour}-100`)
+    }
+  },
+})
+</script>
+
+<template>
+  <div ref="Tag" class="bg-neutral-950 hover:bg-neutral-900 outline outline-1 outline-neutral-600 text-neutral-100 rounded-md px-2 text-sm h-fit w-fit">
+    <slot/>
+  </div>
+</template>
