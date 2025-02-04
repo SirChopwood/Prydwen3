@@ -26,6 +26,26 @@ export default <Partial<Config>>{
                         },
 
                         "h1": {
+                            color: theme("colors.white"),
+                            background: `repeating-linear-gradient(
+                -45deg,
+                #5C2951,
+                #5C2951 10px,
+                #3e1736 10px,
+                #3e1736 20px
+                ) top left scroll`,
+                            borderBottom: `2px solid ${theme("colors.secondary")}`,
+                            paddingLeft: theme("spacing.2"),
+                            paddingTop: theme("spacing.1"),
+                            paddingBottom: theme("spacing.1"),
+                            marginTop: theme("spacing.4"),
+                            marginBottom: 0,
+                            marginLeft: 0,
+                            marginRight: 0,
+                            fontSize: theme("fontSize.xl"),
+                        },
+
+                        "h2": {
                             color: theme("colors.primary"),
                             margin: 0,
                             background: `repeating-linear-gradient(
@@ -37,24 +57,13 @@ export default <Partial<Config>>{
                 ) top left scroll`,
                             paddingBottom: theme("spacing.1"),
                             paddingTop: theme("spacing.1"),
-                            paddingLeft: theme("spacing.2"),
+                            paddingLeft: theme("spacing.4"),
+                            fontSize: theme("fontSize.3xl"),
                         },
 
-                        "h2": {
-                            color: theme("colors.white"),
-                            background: `repeating-linear-gradient(
-                -45deg,
-                #5C2951,
-                #5C2951 10px,
-                #3e1736 10px,
-                #3e1736 20px
-                ) top left scroll`,
-                            borderBottom: `2px solid ${theme("colors.secondary")}`,
-                            paddingLeft: theme("spacing.2"),
-                            marginTop: theme("spacing.4"),
-                            marginBottom: 0,
-                            marginLeft: 0,
-                            marginRight: 0,
+                        "h2 a": {
+                            textDecoration: "none",
+                            textDecorationLine: "none",
                         },
 
                         "h3": {

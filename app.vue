@@ -8,8 +8,8 @@
     </div>
     <div class="min-h-screen h-fit relative flex flex-col gap-20">
       <root-page-header v-if="$route.meta.hideHeader !== true"/>
-      <div ref="headerBlocker" v-if="$route.meta.hideHeader === true" class="h-20"/>
       <div id="Content" class="relative h-fit w-full text-white grow">
+        <div ref="headerBlocker" v-if="$route.meta.hideHeader !== true" class="h-20"/>
         <div>
           <NuxtRouteAnnouncer/>
         </div>
