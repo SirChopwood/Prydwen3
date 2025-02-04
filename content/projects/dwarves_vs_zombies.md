@@ -24,7 +24,7 @@ To start off the project I made a simple little camera system. Just to get back 
 # 08/08/2024
 ## Day 2 - Dwarf Menu
 Today I worked on the design of the main "inventory" menu for the dwarves. This is roughly based off Minecraft's inventory screen, though adjusted to make better use of space and fit my needs a bit better.
-<img src="/src/assets/images/projects/dwarves_vs_zombies/day2.png" alt="">
+<img src="/images/projects/dwarves_vs_zombies/day2.png" alt="">
 
 It looks lovely with the assets from [Kenney](https://www.kenney.nl/).
 For now im thinking that 6 hotbar slots and 6 backpack slots will be fine for the inventory. Presuming the player holds a `Melee Weapon`, a `Ranged Weapon`, a stack of `Ammo`, a `Healing Item`, a stack of `Building Blocks`, and some `Light Blocks`. Add onto this room for 6 other items, be it more blocks or crafting items or even spare gear. Armour is also worn in another 4 dedicated slots.
@@ -58,7 +58,7 @@ This was one of the biggest hurdles I had going with the interface work. Sadly t
 Today I want to be done with the inventory systems so that I can move on to other features.
 Some small bugfixes have been done as well as some code cleanup.
 Also added back Tooltips with a much better system so that they can be raised where/whenever I like.
-<img src="/src/assets/images/projects/dwarves_vs_zombies/day6.png" alt="">
+<img src="/images/projects/dwarves_vs_zombies/day6.png" alt="">
 
 Item stack splitting and merging is now here. Crafters rejoice!
 The new tooltips... yeah... they look a LOT nicer. Totally no inspiration from a certain blocky game.
@@ -70,7 +70,7 @@ The new tooltips... yeah... they look a LOT nicer. Totally no inspiration from a
 # 16/08/2024
 ## Day 7 - Welcome to the Internet
 Got some backend stuff sorted out, including cleaning up some awful networking code. Benefit is a nicer framework for things going forward... right!?
-<img src="/src/assets/images/projects/dwarves_vs_zombies/day7.png" alt="">
+<img src="/images/projects/dwarves_vs_zombies/day7.png" alt="">
 
 I've also started adding the Hotbar to the HUD and with that the Health and Mana systems.
 
@@ -85,7 +85,7 @@ I also setup a base stat component that Mana, HP, Armour etc can all inherit fro
 Fun stuff today! Started off with some number crunching in the planning doc. (No spoilers!)
 
 With these numbers i've added in Armour values, which contribute to both your max health and your mana regen. All this updates live as you equip/unequip. I also redid the equipment widget a little to make it cleaner and show the useful stuff, such as displaying enchantments on a given item or its durability.
-<img src="/src/assets/images/projects/dwarves_vs_zombies/day9.png" alt="">
+<img src="/images/projects/dwarves_vs_zombies/day9.png" alt="">
 
 # 19/08/2024
 ## Day 10 - Problems and Plans
@@ -102,6 +102,6 @@ What's less good is that i want to change items from UActors to UObjects which w
 Took a couple of days off to just unwind and refresh my mind, plus I ported this devlog onto my personal [Twitter](https://x.com/LouisMayes2001) and website.
 
 Back at it again now with the new camera angle set and rotation keybinds added. I also added a few little things to the test world to aid testing.
-<img src="/src/assets/images/projects/dwarves_vs_zombies/day11.png" alt="">
+<img src="/images/projects/dwarves_vs_zombies/day11.png" alt="">
 
 Expect news on Val's C++ branch very soon, already got Rider and VS setup so we can go once that's ready.

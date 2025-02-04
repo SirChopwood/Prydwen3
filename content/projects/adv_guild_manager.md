@@ -73,7 +73,7 @@ Additional features that followed included progress bars with customisable colou
 While my primary focus for this project was working on the gameplay programming, I did manage to get a small amount of time to create some particle systems and materials to use about the map.
 
 One of the highlighted particle systems created for this project was the candles for the Coven. These utilised a set of still frames of the flame, scaling, moving and recolouring to give the impression of a living fire. On top of this I experimented with ribbon renderers, achieving a nice stylised smoke trail that fits naturally with the rest of the art style. This effect built on my previous work last year on flames and smoke, achieving a much more subtle and simple effect while also being far more optimised than the previous attempts.
-<img src="/src/assets/images/projects/adv_guild_manager/tademo1.png" alt="">
+<img src="/images/projects/adv_guild_manager/tademo1.png" alt="">
 
 Early on in the project I worked on a cleaned up version of my Cel Shader. This includes customisable outlines and shadow masking. Unlike many alternatives it attempts to remain subtle in its effects and works to make the textures of the asset pop and contract.
-<img src="/src/assets/images/projects/adv_guild_manager/tempbg.png" alt="">
+<img src="/images/projects/adv_guild_manager/tempbg.png" alt="">

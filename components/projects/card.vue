@@ -1,3 +1,4 @@
+<!--suppress HtmlUnknownTarget -->
 <script lang="ts">
 import {defineComponent} from 'vue'
 
@@ -18,7 +19,7 @@ export default defineComponent({
       this.$data.compiledTags = ["External Link"]
     }
   },
-  data(vm) {
+  data() {
     return {
       compiledTags: [] as Array<string>
     }

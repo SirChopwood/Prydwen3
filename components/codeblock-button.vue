@@ -1,3 +1,4 @@
+<!--suppress HtmlUnknownTarget -->
 <script lang="ts">
 import {defineComponent} from 'vue'
 
