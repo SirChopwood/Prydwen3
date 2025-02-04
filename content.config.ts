@@ -9,7 +9,10 @@ export default defineContentConfig({
                 title: z.string(),
                 description: z.string(),
                 thumbnail: z.string(),
+                timestamp: z.number(),
                 tags: z.array(z.string()),
+                buttonTexts: z.array(z.string()),
+                buttonLinks: z.array(z.string()),
             })
         })
     }

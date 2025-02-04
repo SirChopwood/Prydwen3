@@ -14,13 +14,16 @@
         "@nuxt/icon": "^1.10.3",
         "@nuxt/image": "^1.9.0",
         "@nuxtjs/tailwindcss": "^6.13.1",
+        "front-matter": "^4.0.2",
         "nuxt": "^3.15.4",
         "vue": "latest",
         "vue-router": "latest"
     },
     "devDependencies": {
         "@iconify-json/material-symbols": "^1.2.14",
+        "@iconify-json/mdi": "^1.2.3",
         "@nuxt/content": "^3.1.0",
-        "@tailwindcss/typography": "^0.5.16"
+        "@tailwindcss/typography": "^0.5.16",
+        "tailwindcss-unimportant": "^2.1.1"
     }
 }
