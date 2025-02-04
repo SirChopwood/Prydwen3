@@ -1,4 +1,8 @@
-<script setup>
+<script lang="ts" setup>
+useHead({
+  title: "Loading...",
+  titleTemplate: "%s - Louis Mayes"
+})
 </script>
 
 <template>
@@ -7,7 +11,7 @@
       <!-- Background stuff here -->
     </div>
     <div class="min-h-screen h-fit relative flex flex-col gap-20">
-      <root-page-header v-if="$route.meta.hideHeader !== true"/>
+      <page-header v-if="$route.meta.hideHeader !== true"/>
       <div id="Content" class="relative h-fit w-full text-white grow">
         <div ref="headerBlocker" v-if="$route.meta.hideHeader !== true" class="h-20"/>
         <div>
@@ -15,7 +19,7 @@
         </div>
         <NuxtPage />
       </div>
-      <root-page-footer v-if="$route.meta.hideFooter !== true"/>
+      <page-footer v-if="$route.meta.hideFooter !== true"/>
     </div>
   </div>
 </template>

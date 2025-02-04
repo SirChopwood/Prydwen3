@@ -3,6 +3,9 @@
     // Order ensures projects are loaded in date order, else its alphabetical
     return queryCollection("projects").order("timestamp", "DESC").all()
   })
+  useHead({
+    title: "Home"
+  })
 </script>
 
 <template>
