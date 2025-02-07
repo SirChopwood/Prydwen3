@@ -1,6 +1,6 @@
 import {PrismaClient} from "@prisma/client";
 import {createSession} from "~/server/schema/rrm/session";
-import {isChannelInActiveSession, isChannelRegistered} from "~/server/utils/rrm/session";
+import {isChannelInActiveSession} from "~/server/utils/rrm/session";
 
 export default defineEventHandler(async (event) => {
     const result = await readValidatedBody(event, (body) => {

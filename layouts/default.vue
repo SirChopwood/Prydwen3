@@ -7,12 +7,13 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="min-h-screen h-fit relative flex flex-col gap-20 text-white">
+  <div class="relative min-h-screen flex flex-col text-white">
     <page-header/>
-    <div id="Content" class="relative h-fit w-full grow">
+    <div id="Content" class="relative h-fit w-full">
       <div ref="headerBlocker" v-if="!$route.meta.header" class="h-20"/>
       <slot />
     </div>
+    <div class="grow min-h-2"></div>
     <page-footer name="Louis Mayes"/>
   </div>
 </template>
