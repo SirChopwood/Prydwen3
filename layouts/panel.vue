@@ -7,10 +7,11 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="min-h-screen h-fit relative flex flex-col gap-20 text-white">
-    <div id="Content" class="relative h-fit w-full grow">
+  <div class="relative min-h-screen flex flex-col text-white">
+    <div id="Content" class="relative h-fit w-full">
       <slot />
     </div>
+    <div class="grow min-h-2"></div>
     <page-footer name="Ramiris"/>
   </div>
 </template>
