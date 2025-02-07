@@ -1,0 +1,38 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model RRM_Session {
+  id             Int                 @id @default(autoincrement())
+  requests       RRM_Request[]
+  status         String              @default("Locked") // ["Open", "Closed", "Locked"]
+  startTime      DateTime            @default(now())
+  endTime        DateTime?
+  lastUser       String
+  owner          RRM_TwitchChannel   @relation("Owner", fields: [ownerId], references: [id]) // Explicit One to Many
+  ownerId        String
+  joinedChannels RRM_TwitchChannel[] @relation("Joined") // Implicit Many to Many
+}
+
+model RRM_Request {
+  id        Int         @id @default(autoincrement())
+  session   RRM_Session @relation(fields: [sessionId], references: [id])
+  sessionId Int
+}
+
+model RRM_TwitchChannel {
+  id             String           @id
+  name           String
+  colour         String        @default("#ffffff")
+  image          String?
+  ownedSessions  RRM_Session[] @relation("Owner")
+  joinedSessions RRM_Session[] @relation("Joined")
+}

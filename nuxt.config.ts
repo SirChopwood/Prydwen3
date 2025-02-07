@@ -7,10 +7,14 @@ export default defineNuxtConfig({
         "@nuxt/icon",
         "@nuxt/content",
         "@nuxt/fonts",
-        "@nuxtjs/tailwindcss"
+        "@nuxtjs/tailwindcss",
+        "@prisma/nuxt",
     ],
     image: {},
     icon: {},
     fonts: {},
-    tailwindcss: {}
+    tailwindcss: {},
+    prisma: {
+        autoSetupPrisma: true,
+    },
 })

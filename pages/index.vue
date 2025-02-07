@@ -8,6 +8,26 @@
   })
 </script>
 
+<script lang="ts">
+import {defineComponent} from "vue";
+
+export default defineComponent({
+  name: "Home",
+  components: {},
+  methods: {
+    async testClick() {
+      const body = await $fetch("/api/123/abc", {
+        method: "POST",
+        body: {
+          "hello": "world"
+        }
+      })
+      console.log(body)
+    }
+  }
+})
+</script>
+
 <template>
   <div id="Home" class="flex flex-col mx-20 mt-20 items-center gap-12">
     <div ref="WelcomeText" class="font-jetbrains text-8xl text-white flex flex-col gap-4 my-20 bg-neutral-950 px-12 py-4">
@@ -15,6 +35,7 @@
       <div class="">Welcome! </div>
       <div class="pl-24 w-fit">...<span class="text-neutral-950 bg-primary">I'm Louis</span><span class="animation-blinker">_</span></div>
     </div>
+    <button @click="testClick" class="bg-red-700 text-red-400 p-2 text-2xl">TEST</button>
     <div ref="SkillTable" class="w-full" >
       <div class="font-jetbrains text-2xl text-white mb-2 bg-neutral-950 w-fit py-1 px-4">> What I do <span class="animation-blinker">_</span></div>
       <div class="flex flex-row justify-center gap-4">
