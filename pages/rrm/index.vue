@@ -1,0 +1,22 @@
+<script setup lang="ts">
+definePageMeta({
+  title: "Rami Request Manager",
+  layout: "panel"
+})
+</script>
+
+<script lang="ts">
+import {defineComponent} from 'vue'
+
+export default defineComponent({
+  name: "index"
+})
+</script>
+
+<template>
+
+</template>
+
+<style scoped>
+
+</style>
