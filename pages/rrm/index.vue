@@ -3,31 +3,51 @@ import ToolbarButton from "~/components/rrm/toolbar-button.vue";
 import ToolbarSelect from "~/components/rrm/toolbar-select.vue";
 import ControlCategory from "~/components/rrm/control-category.vue";
 import ControlButton from "~/components/rrm/control-button.vue";
+import RequestItem from "~/components/rrm/request-item.vue";
+import type {User} from "#auth-utils";
 
 definePageMeta({
   title: "Rami Request Manager",
   layout: "panel"
 })
-</script>
 
-<script lang="ts">
-import {defineComponent} from 'vue'
+const session = useUserSession()
+const sessionValid = session.loggedIn.value
+const sessionData = session.user.value as User
+let songList = ref([] as Array<{name: string, songId: string, user: string}>)
+const hostButtonName = useTemplateRef("HostButtonName")
 
-export default defineComponent({
-  name: "index"
+onMounted(() => {
+  songList.value.push({name:"Beep Beep I'm A Sheep", songId:"2232", user:"MrMimi"})
+  songList.value.push({name:"Starships - Nicki Minaj", songId:"427", user:"MrMimi"})
+  songList.value.push({name:"I WANT IT THAT WAY (Remix) by Backstreet Boys", songId:"871", user:"DJ_Fry"})
+  songList.value.push({name:"READY OR NOT by: Momoland", songId:"1778", user:"ramiris_"})
+  songList.value.push({name:"Wake Me Up", songId:"2232", user:"ASneakyNinja"})
+  songList.value.push({name:"[KPOP] ASTRO - After Midnight", songId:"1234", user:"ASneakyNinja"})
+  songList.value.push({name:"Beep Beep I'm A Sheep", songId:"2232", user:"MrMimi"})
 })
+
+
+function authButton() {
+  if (!sessionValid) {
+    navigateTo('/api/auth/twitch', {external: true})
+  }
+}
 </script>
 
 <template>
 <div>
   <div ref="Toolbar" class="w-full h-fit mt-0 drop-shadow-md flex flex-col divide-y-2 divide-neutral-900 stripes">
-    <div class="w-full h-fit flex flex-row divide-x divide-neutral-700  drop-shadow-md">
+    <div ref="ToolbarRow1" class="w-full h-fit flex flex-row divide-x divide-neutral-700  drop-shadow-md">
       <!--PANEL CONTROLS-->
       <toolbar-button class="text-primary font-bold" disabled>
         Rami Request Manager
       </toolbar-button>
-      <toolbar-button ref="RefreshButton">
-        Refresh
+      <toolbar-button ref="AuthButton" @button-clicked="authButton">
+        <div v-if="!sessionValid" class="absolute size-6 rounded-full top-0 left-0 animate-ping bg-purple-950"/>
+        <icon v-if="!sessionValid" name="mdi:twitch" class="mr-2 size-6 align-middle"/>
+        <nuxt-img v-if="sessionValid" :src="sessionData.profile_image_url" class="size-6 rounded-sm inline-block mr-2 align-middle" placeholder/>
+        {{sessionValid ? sessionData.display_name : "Login to Twitch"}}
       </toolbar-button>
       <toolbar-select ref="SessionSelect">
         Session:
@@ -36,13 +56,12 @@ export default defineComponent({
         Create Session
       </toolbar-button>
       <toolbar-button ref="HostButton">
-        Host: The DJ Fry
+        Host: <span ref="HostButtonName">The DJ Fry</span>
       </toolbar-button>
       <!--MID BAR GAP-->
       <div class="grow"/>
       <!--RIGHT SIDE CONTROLS-->
       <toolbar-button ref="HelpButton">
-        <div class="absolute size-4 rounded-full top-0 left-0 animate-ping bg-amber-700"/>
         Help
       </toolbar-button>
       <toolbar-button ref="PingText" disabled>
@@ -62,7 +81,7 @@ export default defineComponent({
       </toolbar-button>
     </div>
   </div>
-  <div class="w-full flex flex-row gap-4 p-4">
+  <div ref="ToolbarRow2" class="w-full flex flex-row gap-4 p-4">
     <div class="rounded-md bg-neutral-900 p-2 grow relative">
       <div class="h-full w-full rounded-md bg-neutral-950 border-purple-950 border-2 -z-20">
         <icon name="mdi:twitch" class="size-1/3 text-purple-950 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse z-0" />
@@ -97,7 +116,7 @@ export default defineComponent({
         <control-button ref="OverlayMessagePause" icon="material-symbols:fast-forward-rounded" colour="Blue">Next</control-button>
         <control-button ref="OverlayMessageRemove" icon="material-symbols:add-2-rounded" colour="Green">Add</control-button>
         <div id="RequestQueue" class="h-40 resize-y overflow-y-scroll overflow-x-clip text-pretty min-h-20 w-full rounded-md bg-neutral-950 flex flex-col">
-<!--          <RequestQueueEntry v-for="song in songList" :name="song.name" :user="song.user" :song-id="song.songId"/>-->
+          <request-item v-for="song in songList" :name="song.name" :user="song.user" :song-id="song.songId"/>
         </div>
       </control-category>
     </div>
