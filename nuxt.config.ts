@@ -17,5 +17,8 @@ export default defineNuxtConfig({
     tailwindcss: {},
     prisma: {
         autoSetupPrisma: true,
-    }
+    },
+    css: [
+        "vue-final-modal/style.css"
+    ]
 })

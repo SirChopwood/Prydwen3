@@ -4,7 +4,9 @@ import ToolbarSelect from "~/components/rrm/toolbar-select.vue";
 import ControlCategory from "~/components/rrm/control-category.vue";
 import ControlButton from "~/components/rrm/control-button.vue";
 import RequestItem from "~/components/rrm/request-item.vue";
+import TwitchAuthModal from "~/components/rrm/twitch-auth-modal.vue";
 import type {User} from "#auth-utils";
+import {useModal} from "vue-final-modal";
 
 definePageMeta({
   title: "Rami Request Manager",
@@ -27,11 +29,36 @@ onMounted(() => {
   songList.value.push({name:"Beep Beep I'm A Sheep", songId:"2232", user:"MrMimi"})
 })
 
+const { open: openAuthModal, close } = useModal({
+  component: TwitchAuthModal,
+  attrs: {
+    sessionData: sessionData,
+    onCloseModal() {
+      close()
+    },
+    onLogin() {
+      if (!sessionValid) {
+        navigateTo('/api/auth/twitch', {external: true})
+      }
+    },
+    onLogout() {
+      if (sessionValid) {
+        session.clear().then((result) => {
+          console.log("session logged out")
+          reloadNuxtApp()
+        })
+      }
+    }
+  },
+})
 
 function authButton() {
-  if (!sessionValid) {
-    navigateTo('/api/auth/twitch', {external: true})
-  }
+
+  openAuthModal()
+
+  // if (!sessionValid) {
+  //   navigateTo('/api/auth/twitch', {external: true})
+  // }
 }
 </script>
 
@@ -98,7 +125,7 @@ function authButton() {
         </ul>
         <control-button ref="SessionQueueOpen" icon="material-symbols:lock-open-right-outline" colour="Green">Unlock</control-button>
         <control-button ref="SessionQueueLock" icon="material-symbols:lock-outline" colour="Yellow">Lock</control-button>
-        <control-button ref="SessionQueueClose" icon="material-symbols:cancel-presentation-outline" colour="Red">Close</control-button>
+        <control-button ref="SessionQueueClose" icon="mdi:close-box-outline" colour="Red">Close</control-button>
       </control-category>
 
       <!--OVERLAY CONTROLS-->
