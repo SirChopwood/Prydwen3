@@ -2,13 +2,11 @@ import {PrismaClient} from "@prisma/client";
 import {TwitchChannel} from "~/server/schema/rrm/twitch";
 import {z} from "zod"
 
-export async function isChannelRegistered(prisma: PrismaClient, channel: z.infer<typeof TwitchChannel>) {
-    if (await getChannel(prisma, channel)) {
-        return true
-    }
+export async function isChannelRegistered(prisma: PrismaClient, channel: z.infer<typeof TwitchChannel>, silent: boolean = false) {
+    return !!(await getChannel(prisma, channel, silent))
 }
 
-export async function getChannel(prisma: PrismaClient, channel: z.infer<typeof TwitchChannel>) {
+export async function getChannel(prisma: PrismaClient, channel: z.infer<typeof TwitchChannel>, silent: boolean = false) {
     let foundChannel = await prisma.rRM_TwitchChannel.findUnique({
         where: {
             id: channel.id,
@@ -17,22 +15,24 @@ export async function getChannel(prisma: PrismaClient, channel: z.infer<typeof T
     })
     if (foundChannel) {
         return foundChannel
-    } else {
+    } else if (!silent) {
         throw createError({statusCode: 400, statusMessage: `Channel '${channel.name}' not registered.`})
+    } else {
+        return
     }
 }
 
 export async function isChannelInActiveSession(prisma: PrismaClient, channel: z.infer<typeof TwitchChannel>) {
-    let sessions = await getActiveSessionFromOwner(prisma, channel)
+    let sessions = await getActiveSessionsFromOwner(prisma, channel, true)
     if (sessions.length === 0) {
-        return true
+        return false
     } else {
         throw createError({statusCode: 400, statusMessage: "Channel is already in an active session."})
     }
 }
 
-export async function getActiveSessionFromOwner(prisma: PrismaClient, owner: z.infer<typeof TwitchChannel>) {
-    await isChannelRegistered(prisma, owner)
+export async function getActiveSessionsFromOwner(prisma: PrismaClient, owner: z.infer<typeof TwitchChannel>, silent: boolean = false) {
+    await isChannelRegistered(prisma, owner, silent)
     let sessions = await prisma.rRM_Session.findMany({
         where: {
             OR: [
@@ -69,7 +69,29 @@ export async function getActiveSessionFromOwner(prisma: PrismaClient, owner: z.i
     })
     if (sessions.length > 0) {
         return sessions
-    } else {
+    } else if (!silent) {
         throw createError({statusCode: 400, statusMessage: "Channel is not in an active session."})
+    } else {
+        return []
+    }
+}
+
+export async function getSessionById(prisma: PrismaClient, sessionId: number, silent: boolean = false) {
+    let session = await prisma.rRM_Session.findUnique({
+        where: {
+            id: sessionId
+        },
+        include: {
+            owner: true,
+            requests: true,
+            joinedChannels: true,
+        }
+    })
+    if (session) {
+        return session
+    } else if (!silent) {
+        throw createError({statusCode: 400, statusMessage: "Session not found."})
+    } else {
+        return []
     }
 }

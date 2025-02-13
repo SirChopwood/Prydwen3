@@ -26,6 +26,10 @@ model RRM_Request {
   id        Int         @id @default(autoincrement())
   session   RRM_Session @relation(fields: [sessionId], references: [id])
   sessionId Int
+  text String // e.g. Song Name
+  user String // e.g. Twitch User
+  code String // e.g. Song Id / URL
+  metadata String? // JSON Stringify/Parse this for an object of anything
 }
 
 model RRM_TwitchChannel {

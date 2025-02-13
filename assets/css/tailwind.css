@@ -46,4 +46,12 @@
     .gallery {
         @apply grid grid-cols-2 grid-rows-1 items-center w-full gap-2 justify-evenly justify-items-center max-h-80
     }
+
+    .tooltip {
+        @apply invisible absolute rounded-md bg-neutral-900 border-2 border-secondary inset-0 p-0.5 h-fit translate-y-8
+    }
+
+    .has-tooltip:hover .tooltip {
+        @apply visible z-50;
+    }
 }

@@ -6,44 +6,121 @@ import ControlButton from "~/components/rrm/control-button.vue";
 import RequestItem from "~/components/rrm/request-item.vue";
 import TwitchAuthModal from "~/components/rrm/twitch-auth-modal.vue";
 import type {User} from "#auth-utils";
+import type {RRM_Session} from "@prisma/client";
 import {useModal} from "vue-final-modal";
+import CreateSessionModal from "~/components/rrm/create-session-modal.vue";
 
+useHead({
+  title: "Rami Request Manager",
+  titleTemplate: "%s",
+  script: [{src: "https://player.twitch.tv/js/embed/v1.js"}]
+})
 definePageMeta({
   title: "Rami Request Manager",
   layout: "panel"
 })
 
-const session = useUserSession()
-const sessionValid = session.loggedIn.value
-const sessionData = session.user.value as User
+let userSession = useUserSession()
+let userSessionValid = ref(userSession.loggedIn.value)
+let userSessionData = ref(userSession.user.value as User)
+let {data: moddedChannels} = await useFetch("/api/rrm/twitch/moderated", {method: "POST",})
 let songList = ref([] as Array<{name: string, songId: string, user: string}>)
-const hostButtonName = useTemplateRef("HostButtonName")
+let activeSessions = ref([] as Array<RRM_Session>)
+let currentSession = ref<RRM_Session | null>(null)
+let references = {
+  Toolbar: useTemplateRef("Toolbar"),
+  ToolbarRow1: useTemplateRef("ToolbarRow1"),
+  AuthButton: useTemplateRef("AuthButton"),
+  SessionSelect: useTemplateRef("SessionSelect"),
+  CreateSessionButton: useTemplateRef("CreateSessionButton"),
+  HostButton: useTemplateRef("HostButton"),
+  HostButtonName: useTemplateRef("HostButtonName"),
+  HelpButton: useTemplateRef("HelpButton"),
+  PingText: useTemplateRef("PingText"),
+  ToolbarRow2: useTemplateRef("ToolbarRow2"),
+  ChannelSelect: useTemplateRef("ChannelSelect"),
+  UptimeText: useTemplateRef("UptimeText"),
+  OverlayButton: useTemplateRef("OverlayButton"),
+  Controls: useTemplateRef("Controls"),
+  SessionQueueOpen: useTemplateRef("SessionQueueOpen"),
+  SessionQueueLock: useTemplateRef("SessionQueueLock"),
+  SessionQueueClose: useTemplateRef("SessionQueueClose"),
+  NotificationMessageText: useTemplateRef("NotificationMessageText"),
+  OverlayMessageWelcome: useTemplateRef("OverlayMessageWelcome"),
+  OverlayMessagePause: useTemplateRef("OverlayMessagePause"),
+  OverlayMessageCustom: useTemplateRef("OverlayMessageCustom"),
+  OverlayMessageRemove: useTemplateRef("OverlayMessageRemove"),
+  RequestQueuePrevious: useTemplateRef("RequestQueuePrevious"),
+  RequestQueueNext: useTemplateRef("RequestQueueNext"),
+  RequestQueueAdd: useTemplateRef("RequestQueueAdd"),
+  RequestQueue: useTemplateRef("RequestQueue")
+}
+let twitchPlayer = ref()
 
-onMounted(() => {
-  songList.value.push({name:"Beep Beep I'm A Sheep", songId:"2232", user:"MrMimi"})
-  songList.value.push({name:"Starships - Nicki Minaj", songId:"427", user:"MrMimi"})
-  songList.value.push({name:"I WANT IT THAT WAY (Remix) by Backstreet Boys", songId:"871", user:"DJ_Fry"})
-  songList.value.push({name:"READY OR NOT by: Momoland", songId:"1778", user:"ramiris_"})
-  songList.value.push({name:"Wake Me Up", songId:"2232", user:"ASneakyNinja"})
-  songList.value.push({name:"[KPOP] ASTRO - After Midnight", songId:"1234", user:"ASneakyNinja"})
-  songList.value.push({name:"Beep Beep I'm A Sheep", songId:"2232", user:"MrMimi"})
+onMounted(async () => {
+  await refreshActiveSessions()
+  setInterval(updateTimers, 1000)
 })
 
-const { open: openAuthModal, close } = useModal({
+watch(userSessionData, async (newUser) => {
+  if (userSessionValid.value) {
+    console.log("Logged into twitch: ", userSessionData.value)
+    await refreshActiveSessions()
+  } else {
+    console.log("Logged out of twitch!")
+  }
+}, {immediate: true})
+
+watch(currentSession, async (newSession) => {
+  if (newSession && references.ChannelSelect.value) {
+    let channelOptions: Array<{value: string, label: string}> = []
+
+    channelOptions.push({value: newSession.owner.name, label: newSession.owner.name})
+    for (let channel of newSession.joinedChannels) {
+      channelOptions.push({value: channel.name, label: channel.name})
+    }
+    await references.ChannelSelect.value.updateSelectOptions(channelOptions, false)
+
+    newSession.requests = []
+    newSession.requests.push({text:"Beep Beep I'm A Sheep", code:"2232", user:"MrMimi"})
+    newSession.requests.push({text:"Starships - Nicki Minaj", code:"427", user:"MrMimi"})
+    newSession.requests.push({text:"I WANT IT THAT WAY (Remix) by Backstreet Boys", code:"871", user:"DJ_Fry"})
+    newSession.requests.push({text:"READY OR NOT by: Momoland", code:"1778", user:"ramiris_"})
+    newSession.requests.push({text:"Wake Me Up", code:"2232", user:"ASneakyNinja"})
+    newSession.requests.push({text:"[KPOP] ASTRO - After Midnight", code:"1234", user:"ASneakyNinja"})
+    newSession.requests.push({text:"Beep Beep I'm A Sheep", code:"2232", user:"MrMimi"})
+  }
+})
+
+async function refreshActiveSessions() {
+  let {data: sessions} = await useFetch<Array<RRM_Session>>("/api/rrm/session/fetch", {method: "POST", body: {}})
+  console.log("active Sessions: ", sessions.value, references.SessionSelect.value)
+  if (sessions.value && references.SessionSelect.value) {
+    activeSessions.value = sessions.value
+
+    let sessionOptions: Array<{value: string, label: string}> = []
+    for (let session of activeSessions.value) {
+      sessionOptions.push({value: String(session.id), label: `${session.id} (${session.owner.name})`})
+    }
+    await references.SessionSelect.value.updateSelectOptions(sessionOptions)
+  }
+}
+
+const { open: openAuthModal, close: closeAuthModal } = useModal({
   component: TwitchAuthModal,
   attrs: {
-    sessionData: sessionData,
+    userSessionData: userSessionData.value,
     onCloseModal() {
-      close()
+      closeAuthModal()
     },
     onLogin() {
-      if (!sessionValid) {
+      if (!userSessionValid.value) {
         navigateTo('/api/auth/twitch', {external: true})
       }
     },
     onLogout() {
-      if (sessionValid) {
-        session.clear().then((result) => {
+      if (userSessionValid.value) {
+        userSession.clear().then((result) => {
           console.log("session logged out")
           reloadNuxtApp()
         })
@@ -52,13 +129,79 @@ const { open: openAuthModal, close } = useModal({
   },
 })
 
-function authButton() {
+const { open: openCreateSessionModal, close: closeCreateSessionModal } = useModal({
+  component: CreateSessionModal,
+  attrs: {
+    userSessionData: userSessionData.value,
+    moddedChannels: moddedChannels.value,
+    onCloseModal() {
+      closeCreateSessionModal()
+    },
+    async onSessionCreated() {
+      await refreshActiveSessions()
+      await closeCreateSessionModal()
+    }
+  },
+})
 
-  openAuthModal()
+async function updateTimers() {
+  if (references.UptimeText.value) {
+    if (currentSession.value) {
+      let sessionStartDate = new Date(currentSession.value.startTime)
+      let milliseconds = Math.floor(Date.now() - sessionStartDate.getTime())
+      let seconds = Math.floor(milliseconds / 1000);
+      let minutes = Math.floor(seconds / 60);
+      let hours = Math.floor(minutes / 60);
+      minutes = minutes - (hours * 60);
+      seconds = seconds - (((hours * 60) + minutes) * 60)
+      references.UptimeText.value.innerText = `${hours}h ${minutes}m ${seconds}s`
+    } else {
+      references.UptimeText.value.innerText = `N/A`
+    }
+  }
+  if (references.PingText.value) {
+    let pingStartTime = Date.now()
+    await $fetch("/api/ping")
+    let pingEndTime = Date.now()
+    references.PingText.value.innerText = `${Math.floor(pingEndTime - pingStartTime)}ms`
+  }
+}
 
-  // if (!sessionValid) {
-  //   navigateTo('/api/auth/twitch', {external: true})
-  // }
+async function selectSession() {
+  let selection = references.SessionSelect.value!.getSelectedOption()
+  if (selection === "none") {
+    currentSession.value = null
+    console.log(`Session selection cleared.`)
+  } else {
+    for (let session of activeSessions.value) {
+      if (String(session.id) === String(selection)) {
+        currentSession.value = session
+        console.log(`Session ${selection} selected.`)
+      }
+    }
+  }
+}
+
+async function selectChannel() {
+  let selection = references.ChannelSelect.value!.getSelectedOption()
+  if (selection === "none") {
+    console.log(`Channel selection cleared.`)
+  } else {
+    console.log(`Channel ${selection} selected.`)
+    if (twitchPlayer.value) {
+      twitchPlayer.value.setChannel(selection)
+    } else {
+      let TwitchOptions = {
+        width: "100%",
+        height: window.screen.height * 0.6,
+        channel: selection,
+        autoplay: true,
+        muted: true,
+        parent: ["louismayes.xyz", "localhost"]
+      };
+      twitchPlayer.value = new Twitch.Player("EmbeddedTwitchPlayer", TwitchOptions)
+    }
+  }
 }
 </script>
 
@@ -70,16 +213,18 @@ function authButton() {
       <toolbar-button class="text-primary font-bold" disabled>
         Rami Request Manager
       </toolbar-button>
-      <toolbar-button ref="AuthButton" @button-clicked="authButton">
-        <div v-if="!sessionValid" class="absolute size-6 rounded-full top-0 left-0 animate-ping bg-purple-950"/>
-        <icon v-if="!sessionValid" name="mdi:twitch" class="mr-2 size-6 align-middle"/>
-        <nuxt-img v-if="sessionValid" :src="sessionData.profile_image_url" class="size-6 rounded-sm inline-block mr-2 align-middle" placeholder/>
-        {{sessionValid ? sessionData.display_name : "Login to Twitch"}}
+      <toolbar-button ref="AuthButton" @button-clicked="openAuthModal">
+        <div class="relative w-fit h-fit inline-block mr-2 ">
+          <div class="bg-purple-900 rounded-full animate-ping absolute align-middle inset-0"/>
+          <icon v-if="!userSessionValid" name="mdi:twitch" class="size-6 align-middle"/>
+        </div>
+        <nuxt-img v-if="userSessionValid" :src="userSessionData.profile_image_url" class="size-6 rounded-sm inline-block mr-2 align-middle" placeholder/>
+        {{userSessionValid ? userSessionData.display_name : "Login to Twitch"}}
       </toolbar-button>
-      <toolbar-select ref="SessionSelect">
+      <toolbar-select ref="SessionSelect" @select-changed="selectSession">
         Session:
       </toolbar-select>
-      <toolbar-button ref="SetupButton" class="hover:bg-red-900 hover:text-red-300 bg-red-950 text-red-400">
+      <toolbar-button ref="CreateSessionButton" @button-clicked="openCreateSessionModal" class="hover:bg-red-900 hover:text-red-300 bg-red-950 text-red-400">
         Create Session
       </toolbar-button>
       <toolbar-button ref="HostButton">
@@ -88,40 +233,40 @@ function authButton() {
       <!--MID BAR GAP-->
       <div class="grow"/>
       <!--RIGHT SIDE CONTROLS-->
-      <toolbar-button ref="HelpButton">
+      <toolbar-button ref="HelpButton" @button-clicked="refreshActiveSessions">
         Help
       </toolbar-button>
-      <toolbar-button ref="PingText" disabled>
-        Ping: <span class="codeblock min-w-10 inline-block"><000</span>
+      <toolbar-button disabled>
+        Ping: <span ref="PingText" class="codeblock min-w-10 inline-block"><000</span>
       </toolbar-button>
     </div>
-    <div class="w-full h-fit flex flex-row divide-x divide-neutral-700">
+    <div ref="ToolbarRow2" class="w-full h-fit flex flex-row divide-x divide-neutral-700">
       <!--SESSION CONTROLS-->
-      <toolbar-select ref="ChannelSelect" default-select="No Stream">
+      <toolbar-select ref="ChannelSelect" @select-changed="selectChannel" default-select="No Stream">
         Twitch Channel:
       </toolbar-select>
-      <toolbar-button ref="UptimeText" class="" disabled>
-        Uptime: <span class="codeblock min-w-20 inline-block">00000</span>
+      <toolbar-button class="" disabled>
+        Uptime: <span ref="UptimeText" class="codeblock min-w-20 inline-block">00000</span>
       </toolbar-button>
       <toolbar-button ref="OverlayButton">
         Open Overlay
       </toolbar-button>
     </div>
   </div>
-  <div ref="ToolbarRow2" class="w-full flex flex-row gap-4 p-4">
+  <div class="w-full flex flex-row gap-4 p-4">
     <div class="rounded-md bg-neutral-900 p-2 grow relative">
-      <div class="h-full w-full rounded-md bg-neutral-950 border-purple-950 border-2 -z-20">
-        <icon name="mdi:twitch" class="size-1/3 text-purple-950 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse z-0" />
-        <div id="EmbeddedTwitchPlayer" class="z-20"/>
+      <div class="h-fit w-full rounded-md bg-neutral-950 border-purple-950 border-2">
+        <icon v-if="!twitchPlayer" name="mdi:twitch" class="size-1/3 text-purple-950 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
+        <div id="EmbeddedTwitchPlayer"/>
       </div>
     </div>
     <div ref="Controls" class="basis-2/5 flex flex-col gap-4 no-scrollbar" style="scrollbar-color: #404040 #171717">
       <!--SESSION CONTROLS-->
       <control-category title="Session Controls" subtitle="This is how you set if people can make requests.">
         <ul class="list-disc pl-6">
-          <li>You can only have one session open at a time for a given twitch channel.</li>
-          <li>If you wish to pause requests, Lock the queue and reopen it when you're ready.</li>
-          <li>Closing the session will end the session and allow that channel to open or be added to another.</li>
+          <li>You can only have one Session open at a time for a given twitch channel.</li>
+          <li>If you wish to pause the entering of requests, Lock the queue and reopen it when you're ready.</li>
+          <li>Closing the Session will end it and allow that channel to open a new one or be added to another existing Session.</li>
         </ul>
         <control-button ref="SessionQueueOpen" icon="material-symbols:lock-open-right-outline" colour="Green">Unlock</control-button>
         <control-button ref="SessionQueueLock" icon="material-symbols:lock-outline" colour="Yellow">Lock</control-button>
@@ -130,8 +275,8 @@ function authButton() {
 
       <!--OVERLAY CONTROLS-->
       <control-category title="Overlay Controls" subtitle="Control how the Queue is displayed on the Overlay.">
-        <textarea id="NotificationMessageText" class="w-full rounded-md bg-neutral-950 p-2 border-2 border-opacity-0 focus:border-opacity-100 border-neutral-700 !outline-none" placeholder="This is the message that will display when the queue is paused."></textarea>
-        <control-button ref="OverlayMessagePause" colour="Blue">Welcome</control-button>
+        <textarea ref="NotificationMessageText" class="w-full rounded-md bg-neutral-950 p-2 border-2 border-opacity-0 focus:border-opacity-100 border-neutral-700 !outline-none" placeholder="This is the message that will display when the queue is paused."></textarea>
+        <control-button ref="OverlayMessageWelcome" colour="Blue">Welcome</control-button>
         <control-button ref="OverlayMessagePause" colour="Blue">Pause</control-button>
         <control-button ref="OverlayMessageCustom" icon="material-symbols:drive-file-rename-outline" colour="Yellow">Custom Message</control-button>
         <control-button ref="OverlayMessageRemove" icon="material-symbols:file-copy-off-outline" colour="Red">Remove Message</control-button>
@@ -139,11 +284,11 @@ function authButton() {
 
       <!--REQUEST QUEUE-->
       <control-category title="Request Queue" subtitle="You can view and rearrange the queue below.">
-        <control-button ref="OverlayMessagePause" icon="material-symbols:fast-rewind-rounded" colour="Blue">Previous</control-button>
-        <control-button ref="OverlayMessagePause" icon="material-symbols:fast-forward-rounded" colour="Blue">Next</control-button>
-        <control-button ref="OverlayMessageRemove" icon="material-symbols:add-2-rounded" colour="Green">Add</control-button>
-        <div id="RequestQueue" class="h-40 resize-y overflow-y-scroll overflow-x-clip text-pretty min-h-20 w-full rounded-md bg-neutral-950 flex flex-col">
-          <request-item v-for="song in songList" :name="song.name" :user="song.user" :song-id="song.songId"/>
+        <control-button ref="RequestQueuePrevious" icon="material-symbols:fast-rewind-rounded" colour="Blue">Previous</control-button>
+        <control-button ref="RequestQueueNext" icon="material-symbols:fast-forward-rounded" colour="Blue">Next</control-button>
+        <control-button ref="RequestQueueAdd" icon="material-symbols:add-2-rounded" colour="Green">Add</control-button>
+        <div ref="RequestQueue" class="h-40 resize-y overflow-y-scroll overflow-x-clip text-pretty min-h-20 w-full rounded-md bg-neutral-950 flex flex-col">
+          <request-item v-if="currentSession" v-for="request in currentSession.requests" :text="request.text" :user="request.user" :code="request.code"/>
         </div>
       </control-category>
     </div>

@@ -3,7 +3,7 @@ import {useModal, VueFinalModal} from 'vue-final-modal'
 import ControlButton from "~/components/rrm/control-button.vue";
 
 const props = defineProps([
-    "sessionData"
+    "userSessionData"
 ])
 
 const emit = defineEmits([
@@ -22,18 +22,40 @@ const emit = defineEmits([
     <div class="rounded-t-md p-1 stripes text-xl text-secondary font-bold">
       <div class="">Twitch Account Link</div>
     </div>
-    <div class="bg-neutral-900 rounded-b-md p-1">
-      Username: <div class="codeblock w-fit inline">{{sessionData ? sessionData.display_name : "N/A"}}</div>
-      <div class="">Profile Picture:
-        <nuxt-img v-if="sessionData" :src="sessionData.profile_image_url" class="size-12 rounded-sm inline-block" placeholder/>
-        <icon v-if="!sessionData" name="mdi:twitch" class="size-12 align-middle inline-block text-neutral-700"/>
+    <div class="bg-neutral-900 rounded-b-md p-1 flex flex-col">
+      <table v-if="userSessionData">
+        <tbody>
+          <tr>
+            <td class="py-1 text-right pr-2">Display Name</td>
+            <td><span class="codeblock size-fit">{{userSessionData.display_name}}</span></td>
+          </tr>
+          <tr>
+            <td class="py-1 text-right pr-2">Profile Picture</td>
+            <td><nuxt-img :src="userSessionData.profile_image_url" class="size-12 rounded-sm" placeholder/></td>
+          </tr>
+          <tr>
+            <td class="py-1 text-right pr-2">ID</td>
+            <td><span class="codeblock size-fit">{{userSessionData.id}}</span></td>
+          </tr>
+          <tr>
+            <td class="py-1 text-right pr-2">Creation Date</td>
+            <td>
+              <span class="codeblock size-fit">{{userSessionData.created_at.split("T")[0]}}</span>
+            at
+              <span class="codeblock size-fit">{{userSessionData.created_at.split("T")[1].replace("Z","")}}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div v-else>
+        Please login to Twitch to see your account details.
       </div>
     </div>
     <div class="bg-neutral-900 rounded-b-md py-1 px-2 stripes flex flex-row justify-between">
       <control-button icon="mdi:close-box-outline" colour="Blue" @button-clicked="emit('closeModal')">Close</control-button>
       <div class="grow"/>
-      <control-button icon="mdi:logout" colour="Red" @button-clicked="emit('logout')">Log out</control-button>
-      <control-button icon="mdi:twitch" colour="Purple" @button-clicked="emit('login')">Log in to Twitch</control-button>
+      <control-button icon="mdi:logout" colour="Red" @button-clicked="emit('logout')" :disabled="!userSessionData">Log out</control-button>
+      <control-button icon="mdi:twitch" colour="Purple" @button-clicked="emit('login')" :disabled="userSessionData">Log in to Twitch</control-button>
     </div>
 
   </VueFinalModal>

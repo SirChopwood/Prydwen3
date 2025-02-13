@@ -8,5 +8,5 @@ export const createSession = z.strictObject({
 })
 
 export const fetchSession = z.strictObject({
-    "channel": TwitchChannel,
+    "session": TwitchChannel.optional(),
 })
