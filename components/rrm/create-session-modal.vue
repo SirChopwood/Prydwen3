@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {useModal, VueFinalModal} from 'vue-final-modal'
+import {VueFinalModal} from 'vue-final-modal'
 import ControlButton from "~/components/rrm/control-button.vue";
 
 const props = defineProps([
@@ -51,7 +51,6 @@ async function submit() {
         return selectedChannels.value.includes(v.id)
       })
     }
-    console.log(requestBody)
     let {data: newSession} = await useFetch("/api/rrm/session/create", {
       method: "POST",
       body: requestBody,

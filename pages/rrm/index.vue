@@ -9,6 +9,7 @@ import type {User} from "#auth-utils";
 import type {RRM_Request, RRM_Session, RRM_TwitchChannel} from "@prisma/client";
 import {useModal} from "vue-final-modal";
 import CreateSessionModal from "~/components/rrm/create-session-modal.vue";
+import CreateRequestModal from "~/components/rrm/create-request-modal.vue";
 
 useHead({
   title: "Rami Request Manager",
@@ -20,12 +21,13 @@ definePageMeta({
   layout: "panel"
 })
 
-type FullSession = RRM_Session & {owner: RRM_TwitchChannel, joinedChannels: Array<RRM_TwitchChannel>}
+type FullSession = RRM_Session & {owner: RRM_TwitchChannel, joinedChannels: Array<RRM_TwitchChannel>, requests: string}
 let userSession = useUserSession()
 let userSessionValid = ref(userSession.loggedIn.value)
 let userSessionData = ref(userSession.user.value as User)
 let {data: moddedChannels} = await useFetch("/api/rrm/twitch/moderated", {method: "POST",})
 let requestList = ref({} as Record<string, RRM_Request>)
+let sortedRequestList = ref([] as Array<RRM_Request>)
 let activeSessions = ref([] as Array<FullSession>)
 let currentSession = ref<FullSession | null>(null)
 let references = {
@@ -90,6 +92,13 @@ watch(currentSession, async (newSession) => {
   }
 })
 
+watch(requestList, async (newRequests) => {
+  sortedRequestList.value = []
+  for (let requestIndex of JSON.parse(currentSession.value!.requests)) {
+    sortedRequestList.value.push(requestList.value[requestIndex])
+  }
+})
+
 async function refreshActiveSessions() {
   let {data: sessions} = await useFetch<Array<FullSession>>("/api/rrm/session/fetch", {method: "POST", body: {}})
   if (sessions.value && references.SessionSelect.value) {
@@ -136,6 +145,29 @@ const { open: openCreateSessionModal, close: closeCreateSessionModal } = useModa
     },
     async onSessionCreated() {
       await refreshActiveSessions()
+      await closeCreateSessionModal()
+    }
+  },
+})
+
+async function openCreateRequestModalWithContext() {
+  patchCreateRequestModal({
+    attrs: {
+      userSessionData: userSessionData.value,
+      sessionData: currentSession.value,
+    }
+  })
+  await openCreateRequestModal()
+}
+const { open: openCreateRequestModal, close: closeCreateRequestModal, patchOptions: patchCreateRequestModal } = useModal({
+  component: CreateRequestModal,
+  attrs: {
+    userSessionData: userSessionData.value,
+    sessionData: currentSession.value,
+    onCloseModal() {
+      closeCreateRequestModal()
+    },
+    async onRequestCreated() {
       await closeCreateSessionModal()
     }
   },
@@ -284,16 +316,11 @@ async function selectChannel() {
       <control-category title="Request Queue" subtitle="You can view and rearrange the queue below.">
         <control-button ref="RequestQueuePrevious" icon="material-symbols:fast-rewind-rounded" colour="Blue">Previous</control-button>
         <control-button ref="RequestQueueNext" icon="material-symbols:fast-forward-rounded" colour="Blue">Next</control-button>
-        <control-button ref="RequestQueueAdd" icon="material-symbols:add-2-rounded" colour="Green">Add</control-button>
+        <control-button ref="RequestQueueAdd" icon="material-symbols:add-2-rounded" colour="Green" @button-clicked="openCreateRequestModalWithContext">Add</control-button>
         aaa {{requestList.value}}
         bbb {{currentSession?.requests}}
         <div ref="RequestQueue" class="h-40 resize-y overflow-y-scroll overflow-x-clip text-pretty min-h-20 w-full rounded-md bg-neutral-950 flex flex-col">
-          <request-item v-if="(requestList && currentSession)"
-                        v-for="requestIndex in JSON.parse(currentSession.requests)"
-                        :text="requestList[String(requestIndex)].text"
-                        :user="requestList[String(requestIndex)].user"
-                        :code="requestList[String(requestIndex)].code"
-          />
+          <request-item v-for="request in sortedRequestList" :request="request"/>
         </div>
       </control-category>
     </div>

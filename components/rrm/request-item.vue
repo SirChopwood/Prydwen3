@@ -4,9 +4,7 @@ import {defineComponent} from 'vue'
 export default defineComponent({
   name: "request-item",
   props: {
-    text: String,
-    code: String,
-    user: String,
+    request: Object,
   },
   mounted() {
     this.$refs.Button.addEventListener("click", () => {
@@ -24,17 +22,17 @@ export default defineComponent({
       </svg>
     </div>
     <div class="flex grow flex-col py-1 mb-1">
-      <div class="group-hover:text-primary text-neutral-200 text-lg">{{ text }}</div>
+      <div class="group-hover:text-primary text-neutral-200 text-lg">{{ request.text }}</div>
       <div class="group-hover:text-primary flex flex-row items-center">
         <button ref="Button" class="codeblock hover:outline-primary hover:text-neutral-200">
-          {{ code }}
+          {{ request.code }}
         </button>
-        <div class="pl-2 text-sm"> by {{ user }}</div>
+        <div class="pl-2 text-sm"> by {{ request.user }}</div>
       </div>
     </div>
     <div class="absolute top-0 right-0 flex flex-row">
       <button class="has-tooltip">
-        <span class="tooltip">Metadata</span>
+        <span class="tooltip">Metadata {{request.metadata}}</span>
         <icon name="mdi:database-search-outline" class="size-6 m-2 text-neutral-700 hover:text-neutral-400"/>
       </button>
       <button class="has-tooltip">
