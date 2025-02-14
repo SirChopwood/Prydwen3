@@ -6,7 +6,7 @@ import ControlButton from "~/components/rrm/control-button.vue";
 import RequestItem from "~/components/rrm/request-item.vue";
 import TwitchAuthModal from "~/components/rrm/twitch-auth-modal.vue";
 import type {User} from "#auth-utils";
-import type {RRM_Session} from "@prisma/client";
+import type {RRM_Request, RRM_Session, RRM_TwitchChannel} from "@prisma/client";
 import {useModal} from "vue-final-modal";
 import CreateSessionModal from "~/components/rrm/create-session-modal.vue";
 
@@ -20,13 +20,14 @@ definePageMeta({
   layout: "panel"
 })
 
+type FullSession = RRM_Session & {owner: RRM_TwitchChannel, joinedChannels: Array<RRM_TwitchChannel>}
 let userSession = useUserSession()
 let userSessionValid = ref(userSession.loggedIn.value)
 let userSessionData = ref(userSession.user.value as User)
 let {data: moddedChannels} = await useFetch("/api/rrm/twitch/moderated", {method: "POST",})
-let songList = ref([] as Array<{name: string, songId: string, user: string}>)
-let activeSessions = ref([] as Array<RRM_Session>)
-let currentSession = ref<RRM_Session | null>(null)
+let requestList = ref({} as Record<string, RRM_Request>)
+let activeSessions = ref([] as Array<FullSession>)
+let currentSession = ref<FullSession | null>(null)
 let references = {
   Toolbar: useTemplateRef("Toolbar"),
   ToolbarRow1: useTemplateRef("ToolbarRow1"),
@@ -64,7 +65,7 @@ onMounted(async () => {
 
 watch(userSessionData, async (newUser) => {
   if (userSessionValid.value) {
-    console.log("Logged into twitch: ", userSessionData.value)
+    console.log("Logged into twitch.")
     await refreshActiveSessions()
   } else {
     console.log("Logged out of twitch!")
@@ -72,6 +73,12 @@ watch(userSessionData, async (newUser) => {
 }, {immediate: true})
 
 watch(currentSession, async (newSession) => {
+  let {data: requests} = await useFetch<Record<string, RRM_Request>>("/api/rrm/request/fetch", {method: "POST", body: {
+    session: newSession?.id
+  }})
+  if (requests.value) {
+    requestList.value = requests.value
+  }
   if (newSession && references.ChannelSelect.value) {
     let channelOptions: Array<{value: string, label: string}> = []
 
@@ -80,21 +87,11 @@ watch(currentSession, async (newSession) => {
       channelOptions.push({value: channel.name, label: channel.name})
     }
     await references.ChannelSelect.value.updateSelectOptions(channelOptions, false)
-
-    newSession.requests = []
-    newSession.requests.push({text:"Beep Beep I'm A Sheep", code:"2232", user:"MrMimi"})
-    newSession.requests.push({text:"Starships - Nicki Minaj", code:"427", user:"MrMimi"})
-    newSession.requests.push({text:"I WANT IT THAT WAY (Remix) by Backstreet Boys", code:"871", user:"DJ_Fry"})
-    newSession.requests.push({text:"READY OR NOT by: Momoland", code:"1778", user:"ramiris_"})
-    newSession.requests.push({text:"Wake Me Up", code:"2232", user:"ASneakyNinja"})
-    newSession.requests.push({text:"[KPOP] ASTRO - After Midnight", code:"1234", user:"ASneakyNinja"})
-    newSession.requests.push({text:"Beep Beep I'm A Sheep", code:"2232", user:"MrMimi"})
   }
 })
 
 async function refreshActiveSessions() {
-  let {data: sessions} = await useFetch<Array<RRM_Session>>("/api/rrm/session/fetch", {method: "POST", body: {}})
-  console.log("active Sessions: ", sessions.value, references.SessionSelect.value)
+  let {data: sessions} = await useFetch<Array<FullSession>>("/api/rrm/session/fetch", {method: "POST", body: {}})
   if (sessions.value && references.SessionSelect.value) {
     activeSessions.value = sessions.value
 
@@ -199,6 +196,7 @@ async function selectChannel() {
         muted: true,
         parent: ["louismayes.xyz", "localhost"]
       };
+      // @ts-ignore
       twitchPlayer.value = new Twitch.Player("EmbeddedTwitchPlayer", TwitchOptions)
     }
   }
@@ -287,8 +285,15 @@ async function selectChannel() {
         <control-button ref="RequestQueuePrevious" icon="material-symbols:fast-rewind-rounded" colour="Blue">Previous</control-button>
         <control-button ref="RequestQueueNext" icon="material-symbols:fast-forward-rounded" colour="Blue">Next</control-button>
         <control-button ref="RequestQueueAdd" icon="material-symbols:add-2-rounded" colour="Green">Add</control-button>
+        aaa {{requestList.value}}
+        bbb {{currentSession?.requests}}
         <div ref="RequestQueue" class="h-40 resize-y overflow-y-scroll overflow-x-clip text-pretty min-h-20 w-full rounded-md bg-neutral-950 flex flex-col">
-          <request-item v-if="currentSession" v-for="request in currentSession.requests" :text="request.text" :user="request.user" :code="request.code"/>
+          <request-item v-if="(requestList && currentSession)"
+                        v-for="requestIndex in JSON.parse(currentSession.requests)"
+                        :text="requestList[String(requestIndex)].text"
+                        :user="requestList[String(requestIndex)].user"
+                        :code="requestList[String(requestIndex)].code"
+          />
         </div>
       </control-category>
     </div>

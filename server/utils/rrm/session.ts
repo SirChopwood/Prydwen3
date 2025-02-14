@@ -63,7 +63,6 @@ export async function getActiveSessionsFromOwner(prisma: PrismaClient, owner: z.
         },
         include: {
             owner: true,
-            requests: true,
             joinedChannels: true,
         }
     })
@@ -83,15 +82,25 @@ export async function getSessionById(prisma: PrismaClient, sessionId: number, si
         },
         include: {
             owner: true,
-            requests: true,
             joinedChannels: true,
         }
     })
-    if (session) {
-        return session
-    } else if (!silent) {
+    if (!session && !silent) {
         throw createError({statusCode: 400, statusMessage: "Session not found."})
     } else {
-        return []
+        return session
+    }
+}
+
+export async function getRequestsBySession(prisma: PrismaClient, sessionId: number, silent: boolean = false) {
+    let requests = await prisma.rRM_Request.findMany({
+        where: {
+            session: sessionId
+        }
+    })
+    if (!requests && !silent) {
+        throw createError({statusCode: 400, statusMessage: "Session not found or has no requests."})
+    } else {
+        return requests
     }
 }

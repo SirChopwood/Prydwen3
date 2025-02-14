@@ -12,7 +12,7 @@ datasource db {
 
 model RRM_Session {
   id             Int                 @id @default(autoincrement())
-  requests       RRM_Request[]
+  requests       String              @default("[]") // JSON Stringify/Parse this as an Array of "Position:RequestId"
   status         String              @default("Locked") // ["Open", "Closed", "Locked"]
   startTime      DateTime            @default(now())
   endTime        DateTime?
@@ -24,8 +24,7 @@ model RRM_Session {
 
 model RRM_Request {
   id        Int         @id @default(autoincrement())
-  session   RRM_Session @relation(fields: [sessionId], references: [id])
-  sessionId Int
+  session Int
   text String // e.g. Song Name
   user String // e.g. Twitch User
   code String // e.g. Song Id / URL
