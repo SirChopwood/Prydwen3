@@ -16,6 +16,7 @@
         "@nuxt/fonts": "^0.10.3",
         "@nuxt/icon": "^1.10.3",
         "@nuxt/image": "^1.9.0",
+        "@nuxthub/core": "^0.8.17",
         "@nuxtjs/tailwindcss": "^6.13.1",
         "@prisma/nuxt": "^0.3.0",
         "front-matter": "^4.0.2",
@@ -31,6 +32,7 @@
         "@iconify-json/mdi": "^1.2.3",
         "@nuxt/content": "^3.1.0",
         "@tailwindcss/typography": "^0.5.16",
-        "tailwindcss-unimportant": "^2.1.1"
+        "tailwindcss-unimportant": "^2.1.1",
+        "wrangler": "^3.109.1"
     }
 }
