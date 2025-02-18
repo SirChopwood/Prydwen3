@@ -20,5 +20,10 @@ export default defineNuxtConfig({
     },
     css: [
         "vue-final-modal/style.css"
-    ]
+    ],
+    nitro: {
+        experimental: {
+            openAPI: true
+        }
+    }
 })
