@@ -10,7 +10,8 @@
         "preview": "nuxt preview",
         "postinstall": "nuxt prepare",
         "buildPreview": "npm run build && npm run preview",
-        "prismaMigrate": "npx prisma migrate dev"
+        "prismaMigrate": "npx prisma migrate dev",
+        "nuxtHubPreview": "npm run build && npx nuxthub preview"
     },
     "dependencies": {
         "@nuxt/fonts": "^0.10.3",

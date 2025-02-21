@@ -1,7 +1,7 @@
 import {z} from "zod";
 
 export default defineEventHandler(async (event) => {
-    const result = await readValidatedBody(event, (body) => {
+    const result: any = await readValidatedBody(event, (body) => {
         return z.object({
             "hello": z.string()
         }).parse(body)

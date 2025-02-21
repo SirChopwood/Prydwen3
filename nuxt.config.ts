@@ -8,8 +8,9 @@ export default defineNuxtConfig({
       "@nuxt/content",
       "@nuxt/fonts",
       "@nuxtjs/tailwindcss",
-      "@prisma/nuxt",
-      "nuxt-auth-utils"
+      // "@prisma/nuxt",
+      "nuxt-auth-utils",
+      "@nuxthub/core"
     ],
     image: {},
     icon: {},
