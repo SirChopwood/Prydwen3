@@ -1,4 +1,4 @@
-import {createRequest} from "~/server/schema/rrm/session";
+import {createRequest} from "~/server/schema/rrm/request";
 import {getRequestsBySession, getSessionById} from "~/server/utils/rrm/session";
 import {PrismaClient} from "@prisma/client";
 

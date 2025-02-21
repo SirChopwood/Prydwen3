@@ -26,5 +26,6 @@ export default defineNuxtConfig({
         experimental: {
             openAPI: true
         }
-    }
+    },
+    hub: {}
 })
