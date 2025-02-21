@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1740117648766,
+      "tag": "0000_old_mister_sinister",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1740118109838,
+      "tag": "0001_deep_ink",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1740119989857,
+      "tag": "0002_fixed_yellow_claw",
+      "breakpoints": true
+    }
+  ]
+}

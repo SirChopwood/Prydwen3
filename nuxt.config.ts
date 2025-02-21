@@ -8,7 +8,6 @@ export default defineNuxtConfig({
       "@nuxt/content",
       "@nuxt/fonts",
       "@nuxtjs/tailwindcss",
-      // "@prisma/nuxt",
       "nuxt-auth-utils",
       "@nuxthub/core"
     ],
@@ -16,9 +15,6 @@ export default defineNuxtConfig({
     icon: {},
     fonts: {},
     tailwindcss: {},
-    prisma: {
-        autoSetupPrisma: true,
-    },
     css: [
         "vue-final-modal/style.css"
     ],
