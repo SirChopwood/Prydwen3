@@ -14,27 +14,6 @@ import {defineComponent} from "vue";
 export default defineComponent({
   name: "Home",
   components: {},
-  methods: {
-    async testClick() {
-      const body = await useFetch("/api/123/abc", {
-        method: "POST",
-        body: {
-          "hello": "world"
-        }
-      })
-      console.log(body)
-      let { data: result } = await useFetch("/api/rrm/session/fetch", {
-        method: "POST",
-        body: {
-          "channel": {"id": "11374265", "name": "Ramiiii~"}
-        }
-      })
-      console.log(result)
-      this.$refs.testBox.innerText = JSON.stringify(result, undefined, 2)
-    }
-  },
-  async mounted() {
-  }
 })
 </script>
 
@@ -45,12 +24,6 @@ export default defineComponent({
       <div class="">Welcome! </div>
       <div class="pl-24 w-fit">...<span class="text-neutral-950 bg-primary">I'm Louis</span><span class="animation-blinker">_</span></div>
     </div>
-
-    <button @click="testClick" class="bg-red-700 text-red-400 p-2 text-2xl">TEST</button>
-    <div ref="testBox" class="w-full min-h-40 bg-gray-400 font-thin text-black rounded-lg border-2 border-black">
-
-    </div>
-
     <div ref="SkillTable" class="w-full" >
       <div class="font-jetbrains text-2xl text-white mb-2 bg-neutral-950 w-fit py-1 px-4">> What I do <span class="animation-blinker">_</span></div>
       <div class="flex flex-row justify-center gap-4">
