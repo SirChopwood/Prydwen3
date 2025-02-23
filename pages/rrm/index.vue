@@ -121,7 +121,7 @@ const { open: openAuthModal, close: closeAuthModal } = useModal({
     },
     onLogin() {
       if (!userSessionValid.value) {
-        navigateTo('/api/auth/twitch', {external: true})
+        navigateTo('/api/v1/rrm/twitch/auth', {external: true})
       }
     },
     onLogout() {

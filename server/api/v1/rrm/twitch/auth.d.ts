@@ -11,7 +11,8 @@ declare module '#auth-utils' {
         "offline_image_url": string,
         "view_count": number,
         "email": string,
-        "created_at": string
+        "created_at": string,
+        "moderated_channels": Array<string>,
     }
 
     interface UserSession {
