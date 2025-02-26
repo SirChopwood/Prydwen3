@@ -65,7 +65,7 @@ Any message given to a hub is checked against its internal list of connected Mai
 The Mainframe applies the channel settings such as colour. It also acts as a way to limit what radio channels a given network can provide support for, in SS13 this is handled via Encryption Keys that you can obtain from headsets or the Heads of Staff's lockers.
 ### Processor
 The processor takes the message and reverses the scrambling algorithm, returning the message to a normal readable state. While not required, lacking this machine will leave a message that vaguely resembles the original, yet with missing characters.
-###Server
+### Server
 For the demo, servers do nothing for now. In the future their primary purpose will be logging as well as the ability to customise any additional message processing. (Such as putting job roles in the message or whitelisting specific IDs to speak a channel.
 ### Transmitter
 The transmitter simply prints text to the debug log for now, however in the future it will be what broadcasts messages to any listening machines.
