@@ -5,6 +5,7 @@ tags:
   - "Solo"
   - "Unreal Engine"
   - "Blender"
+  - "Work-In-Progress"
 thumbnail: "/images/projects/nebula_chat/day2_config.png"
 timestamp: 1733788800
 buttonTexts:
