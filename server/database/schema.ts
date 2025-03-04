@@ -29,7 +29,7 @@ export const RRM_Request = sqliteTable("RRM_Request", {
 });
 
 // Junction table for many-to-many relationship between sessions and channels
-export const sessionToChannels = sqliteTable('session_to_channels', {
+export const RRM_SessionToChannels = sqliteTable('RRM_SessionToChannels', {
     sessionId: integer('session_id')
         .notNull()
         .references(() => RRM_Session.id),
@@ -41,34 +41,34 @@ export const sessionToChannels = sqliteTable('session_to_channels', {
 }));
 
 // Relations definitions
-export const twitchChannelRelations = relations(RRM_TwitchChannel, ({ many }) => ({
+export const RRM_TwitchChannelRelations = relations(RRM_TwitchChannel, ({ many }) => ({
     ownedSessions: many(RRM_Session),
-    sessionToChannels: many(sessionToChannels)
+    RRM_sessionToChannels: many(RRM_SessionToChannels)
 }));
 
-export const sessionRelations = relations(RRM_Session, ({ one, many }) => ({
+export const RRM_SessionRelations = relations(RRM_Session, ({ one, many }) => ({
     owner: one(RRM_TwitchChannel, {
         fields: [RRM_Session.ownerId],
         references: [RRM_TwitchChannel.id],
     }),
     requests: many(RRM_Request),
-    sessionToChannels: many(sessionToChannels)
+    RRM_SessionToChannels: many(RRM_SessionToChannels)
 }));
 
-export const requestRelations = relations(RRM_Request, ({ one }) => ({
+export const RRM_RequestRelations = relations(RRM_Request, ({ one }) => ({
     session: one(RRM_Session, {
         fields: [RRM_Request.sessionId],
         references: [RRM_Session.id],
     })
 }));
 
-export const sessionToChannelsRelations = relations(sessionToChannels, ({ one }) => ({
+export const RRM_SessionToChannelsRelations = relations(RRM_SessionToChannels, ({ one }) => ({
     session: one(RRM_Session, {
-        fields: [sessionToChannels.sessionId],
+        fields: [RRM_SessionToChannels.sessionId],
         references: [RRM_Session.id],
     }),
     channel: one(RRM_TwitchChannel, {
-        fields: [sessionToChannels.channelId],
+        fields: [RRM_SessionToChannels.channelId],
         references: [RRM_TwitchChannel.id],
     }),
 }));

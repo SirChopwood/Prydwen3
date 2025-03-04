@@ -5,13 +5,13 @@ import {RRM_TwitchChannel} from "~/server/database/schema";
 import {useDrizzle} from "~/server/utils/drizzle";
 
 // Returns a list of usernames and ids for channels the user has moderator permissions in.
-export async function fetchModeratedChannels(channelId: string, token: string) {
+export async function fetchModeratedChannels(channelId: number, channelName: string, token: string) {
     const userModsRequests = await fetch(url.format({
         protocol: "https",
         hostname: "api.twitch.tv",
         pathname: "/helix/moderation/channels",
         query: {
-            user_id: channelId
+            user_id: String(channelId)
         }
     }), {
         headers: {
@@ -21,13 +21,13 @@ export async function fetchModeratedChannels(channelId: string, token: string) {
     })
     if (userModsRequests.status === 200) {
         let modsData = await userModsRequests.json()
-        let streamerList: Array<z.infer<typeof TwitchChannel>> = []
+        let streamerList: Array<z.infer<typeof TwitchChannel>> = [{id: channelId, name: channelName}]
         for (let streamer of modsData.data) {
             streamerList.push({id: streamer.broadcaster_id, name: streamer.broadcaster_name})
         }
         return streamerList
     } else {
-        return null
+        return []
     }
 }
 

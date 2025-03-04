@@ -12,3 +12,4 @@ export function useDrizzle() {
 export type RRM_Session = typeof schema.RRM_Session.$inferSelect
 export type RRM_Request = typeof schema.RRM_Request.$inferSelect
 export type RRM_TwitchChannel = typeof schema.RRM_TwitchChannel.$inferSelect
+export type RRM_SessionToChannels = typeof schema.RRM_SessionToChannels.$inferSelect
