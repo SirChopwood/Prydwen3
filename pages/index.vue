@@ -18,26 +18,34 @@ export default defineComponent({
 </script>
 
 <template>
-  <div id="Home" class="flex flex-col mx-20 mt-20 items-center gap-12">
-    <div ref="WelcomeText" class="font-jetbrains text-8xl text-white flex flex-col gap-4 my-20 bg-neutral-950 px-12 py-4">
+  <div id="Home" class="flex flex-col mx-4 md:mx-20 mt-4 md:mt-20 items-center gap-12">
+
+    <div ref="WelcomeText" class="font-jetbrains text-2xl md:text-6xl text-white flex flex-col gap-0 md:gap-2 my-20 bg-neutral-950 px-4 md:px-10 py-0 md:py-2">
       <div class="">Hello there. </div>
       <div class="">Welcome! </div>
       <div class="pl-24 w-fit">...<span class="text-neutral-950 bg-primary">I'm Louis</span><span class="animation-blinker">_</span></div>
     </div>
-    <div ref="SkillTable" class="w-full" >
+
+    <div ref="DoSkillTable" class="w-full">
       <div class="font-jetbrains text-2xl text-white mb-2 bg-neutral-950 w-fit py-1 px-4">> What I do <span class="animation-blinker">_</span></div>
-      <div class="flex flex-row justify-center gap-4">
+      <div class="flex flex-row flex-wrap justify-center gap-4">
+        <skill-card title="Game Development" icon="mdi:application-brackets-outline">Designing and prototyping game features. Working in existing game engines to create user facing features.</skill-card>
+        <skill-card title="Technical Art" icon="mdi:palette">Creating visual elements for games as well as improving the development experience for artists and coders.</skill-card>
+      </div>
+    </div>
+
+    <div ref="UseSkillTable" class="w-full">
+      <div class="font-jetbrains text-2xl text-white mb-2 bg-neutral-950 w-fit py-1 px-4">> What I use <span class="animation-blinker">_</span></div>
+      <div class="flex flex-row flex-wrap justify-center gap-4">
         <skill-card title="Unreal Engine" icon="file-icons:unrealscript">Extremely proficient in blueprinting. Including Replication, Interfaces, Components and more.</skill-card>
         <skill-card title="Blender & Substance Painter" icon="file-icons:blender">Experienced with the 3D asset pipeline, High/Low Poly baking, Rigging, Texturing etc.</skill-card>
         <skill-card title="VCS & Web" icon="mdi:git">Actively learning Version Control Software and Web Development.</skill-card>
       </div>
     </div>
+
     <div ref="Projects" id="Projects" class="w-full">
       <div class="font-jetbrains text-2xl text-white mb-2 bg-neutral-950 w-fit py-1 px-4">> My projects <span class="animation-blinker">_</span></div>
       <div class="flex flex-col justify-center items-center gap-4">
-        <banner-image ref="FeaturedProject" class="w-2/3" image="/images/projects/nebula_chat/day2_config.png" link="/projects/nebula_chat" title="Newly Featured">
-          <span class="text-secondary font-bold text-xl">Nebula Chat System</span>  - A recreation of the advanced chat system found in Space Station 13, including telecommunications.
-        </banner-image>
         <div ref="ProjectTable" class="flex flex-row  justify-center gap-4 flex-wrap mt-4">
           <projects-card v-for="project in sortedProjects"
                          :title="project.title"
