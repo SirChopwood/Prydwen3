@@ -19,6 +19,7 @@ export default defineComponent({
   },
   methods: {
     async updateSelectOptions(options: Array<{ value: string; label: string }>, showDefault: boolean = true) {
+      if (options.length === 0) {return}
       this.selectOptions = options
       this.showDefault = showDefault
       await nextTick()

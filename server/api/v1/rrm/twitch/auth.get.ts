@@ -1,5 +1,3 @@
-import {createChannel, isChannelRegistered} from "~/server/utils/rrm/twitch";
-
 export default defineOAuthTwitchEventHandler({
     config: {
         scope: ['user:read:follows', 'user:read:email', 'user:read:moderated_channels']
@@ -10,9 +8,6 @@ export default defineOAuthTwitchEventHandler({
             user: user,
             secure: tokens
         })
-        if (!await isChannelRegistered({name: user.name, id: user.id})) {
-            await createChannel({name: user.name, id: user.id}, "#ffffff")
-        }
         return sendRedirect(event, '/rrm')
     }
 })

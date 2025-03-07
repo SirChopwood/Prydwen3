@@ -10,14 +10,6 @@ export async function fetchSessionById(sessionId: number, blocking: boolean = fa
         foundSession = await useDrizzle().query.RRM_Session.findFirst({
             where: (sessions, {eq}) => {
                 return eq(sessions.id, sessionId)
-            },
-            with: {
-                requests: true,
-                RRM_SessionToChannels: {
-                    with: {
-                        channel: true
-                    }
-                }
             }
         })
     } catch (error) {
@@ -34,65 +26,48 @@ export async function fetchSessionById(sessionId: number, blocking: boolean = fa
     }
 }
 
-export async function fetchSessionByChannel(channelId: number, channelName: string, blocking: boolean = false) {
-    let foundSession: RRM_Session | undefined
+export async function fetchSessionByChannel(channel: {id: number, name: string}, blocking: boolean = false) {
+    let foundSessions: Array<RRM_Session> = []
     try {
-        foundSession = await useDrizzle().query.RRM_Session.findFirst({
-            where: (sessions, {eq}) => {
-                return eq(sessions.ownerId, channelId)
-            },
-            with: {
-                requests: true,
-                RRM_SessionToChannels: {
-                    with: {
-                        channel: true
-                    }
-                }
-            }
-        })
+        let sessionQuery = await useDrizzle().select().from(tables.RRM_Session).where(
+            and(
+                or(
+                    sql`(SELECT 1 FROM json_each(channels) WHERE (value = json(${JSON.stringify(channel)})))`, // Iterate through channels to see if one matches
+                    eq(tables.RRM_Session.owner, channel)
+                ),
+                ne(tables.RRM_Session.status, "Closed")
+            )
+        )
+        if (sessionQuery && sessionQuery[0] !== null) {
+            foundSessions = sessionQuery
+        }
     } catch (error) {
         if (blocking) {
-            throw createError({statusCode: 400, statusMessage: `No Session for '${channelName}' could be found.`})
+            throw createError({statusCode: 400, statusMessage: `No Session for '${channel.name}' could be found.`})
         }
     }
-    if (foundSession) {
-        return foundSession
+    if (!foundSessions && blocking) {
+            throw createError({statusCode: 400, statusMessage: `No Session for '${channel.name}' could be found.`})
     } else {
-        if (blocking) {
-            throw createError({statusCode: 400, statusMessage: `No Session for '${channelName}' could be found.`})
-        }
+        return foundSessions
     }
 }
 
-export async function createSession(user: string, owningChannel: {id: number, name: string}, additionalChannels: Array<{id: number, name: string}>, blocking: boolean = false) {
+export async function createSession(user: string, owningChannel: {id: number, name: string}, additionalChannels: Array<{id: number, name: string}> = [], blocking: boolean = false) {
     let db = useDrizzle()
     try {
-        // First, insert the session
-        const newSession = await db.insert(tables.RRM_Session).values({
+        await db.insert(tables.RRM_Session).values({
             startTime: new Date().toISOString(),
             lastUser: user,
-            ownerId: owningChannel.id,
-            status: "Open"
-        }).returning()
-
-        // Then insert the channel relationships including the owner and additional channels
-        try {
-            const channelRelations = additionalChannels.map(channel => ({
-                sessionId: newSession[0].id,
-                channelId: channel.id
-            }))
-
-            await db.insert(tables.RRM_SessionToChannels).values(channelRelations);
-        } catch (error) {
-            // If the channel relations insert fails, clean up the session
-            await db.delete(tables.RRM_Session).where(eq(tables.RRM_Session.id, newSession[0].id))
-            throw error
-        }
+            owner: owningChannel,
+            status: "Open",
+            channels: additionalChannels
+        })
     } catch (error) {
         console.log(error)
         if (blocking) {
             throw createError({statusCode: 400, statusMessage: `Failed to create new Session.`})
         }
     }
-    return await fetchSessionByChannel(owningChannel.id, owningChannel.name)
+    return await fetchSessionByChannel(owningChannel)
 }

@@ -9,13 +9,12 @@ const props = defineProps([
 
 const emit = defineEmits([
     "closeModal",
-    "sessionCreated",
 ])
 let submitButton = useTemplateRef("submitButton")
 
 let selectedChannels = ref<Array<string>>([])
 let owningChannel = ref("")
-let additionalChannelOptions = ref<Array<{id: string, name: string}>>([])
+let additionalChannelOptions = ref<Array<{id: number, name: string}>>([])
 watch(owningChannel, async (newChannel, oldChannel) => {
   if (props.moddedChannels) {
     additionalChannelOptions.value = props.moddedChannels.filter((v) => {
@@ -51,7 +50,12 @@ async function submit() {
         return selectedChannels.value.includes(v.id)
       })
     }
-    let {data: newSession} = await useFetch("/api/rrm/session/create", {
+    requestBody.owner.id = Number(requestBody.owner.id)
+    for (let channel in requestBody.channels) {
+      requestBody.channels[channel].id = Number(requestBody.channels[channel].id)
+    }
+    console.log(props.moddedChannels, props.userSessionData)
+    let {data: newSession} = await useFetch("/api/v1/rrm/session/create", {
       method: "POST",
       body: requestBody,
     })
@@ -60,6 +64,7 @@ async function submit() {
     } else {
       console.log("Error", newSession)
     }
+    emit('closeModal')
   } else {
     console.log("How did you even prompt this to enable?")
   }

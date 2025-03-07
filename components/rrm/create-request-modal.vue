@@ -34,7 +34,7 @@ async function submit() {
       "session": Number(props.sessionData.id),
       "forceAdd": true
     }
-    let {data: newRequest} = await useFetch("/api/rrm/request/create", {
+    let {data: newRequest} = await useFetch("/api/v1/rrm/request/create", {
       method: "POST",
       body: requestBody,
     })

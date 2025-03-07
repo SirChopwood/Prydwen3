@@ -5,11 +5,10 @@ import ControlCategory from "~/components/rrm/control-category.vue";
 import ControlButton from "~/components/rrm/control-button.vue";
 import RequestItem from "~/components/rrm/request-item.vue";
 import TwitchAuthModal from "~/components/rrm/twitch-auth-modal.vue";
-import type {User} from "#auth-utils";
-import type {RRM_Request, RRM_Session, RRM_TwitchChannel} from "@prisma/client";
 import {useModal} from "vue-final-modal";
 import CreateSessionModal from "~/components/rrm/create-session-modal.vue";
 import CreateRequestModal from "~/components/rrm/create-request-modal.vue";
+import {useSessionManager} from "~/composables/rrm";
 
 useHead({
   title: "Rami Request Manager",
@@ -21,15 +20,7 @@ definePageMeta({
   layout: "panel"
 })
 
-type FullSession = RRM_Session & {owner: RRM_TwitchChannel, joinedChannels: Array<RRM_TwitchChannel>, requests: string}
-let userSession = useUserSession()
-let userSessionValid = ref(userSession.loggedIn.value)
-let userSessionData = ref(userSession.user.value as User)
-let {data: moddedChannels} = await useFetch("/api/rrm/twitch/moderated", {method: "POST",})
-let requestList = ref({} as Record<string, RRM_Request>)
-let sortedRequestList = ref([] as Array<RRM_Request>)
-let activeSessions = ref([] as Array<FullSession>)
-let currentSession = ref<FullSession | null>(null)
+
 let references = {
   Toolbar: useTemplateRef("Toolbar"),
   ToolbarRow1: useTemplateRef("ToolbarRow1"),
@@ -58,78 +49,38 @@ let references = {
   RequestQueueAdd: useTemplateRef("RequestQueueAdd"),
   RequestQueue: useTemplateRef("RequestQueue")
 }
-let twitchPlayer = ref()
+let RamiRequestManager = useSessionManager()
 
 onMounted(async () => {
-  await refreshActiveSessions()
-  setInterval(updateTimers, 1000)
+  await RamiRequestManager.onMounted()
+  await references.SessionSelect.value?.updateSelectOptions(await RamiRequestManager.getSessionsSelectOptions())
 })
 
-watch(userSessionData, async (newUser) => {
-  if (userSessionValid.value) {
-    console.log("Logged into twitch.")
-    await refreshActiveSessions()
-  } else {
-    console.log("Logged out of twitch!")
-  }
-}, {immediate: true})
-
-watch(currentSession, async (newSession) => {
-  let {data: requests} = await useFetch<Record<string, RRM_Request>>("/api/rrm/request/fetch", {method: "POST", body: {
-    session: newSession?.id
-  }})
-  if (requests.value) {
-    requestList.value = requests.value
-  }
-  if (newSession && references.ChannelSelect.value) {
-    let channelOptions: Array<{value: string, label: string}> = []
-
-    channelOptions.push({value: newSession.owner.name, label: newSession.owner.name})
-    for (let channel of newSession.joinedChannels) {
-      channelOptions.push({value: channel.name, label: channel.name})
-    }
-    await references.ChannelSelect.value.updateSelectOptions(channelOptions, false)
+watch(RamiRequestManager.timeSinceStart, (newValue, oldValue) => {
+  if (references.UptimeText.value) {
+    references.UptimeText.value.innerText = newValue.text
   }
 })
 
-watch(requestList, async (newRequests) => {
-  sortedRequestList.value = []
-  for (let requestIndex of JSON.parse(currentSession.value!.requests)) {
-    sortedRequestList.value.push(requestList.value[requestIndex])
-  }
-})
-
-async function refreshActiveSessions() {
-  let {data: sessions} = await useFetch<Array<FullSession>>("/api/rrm/session/fetch", {method: "POST", body: {}})
-  if (sessions.value && references.SessionSelect.value) {
-    activeSessions.value = sessions.value
-
-    let sessionOptions: Array<{value: string, label: string}> = []
-    for (let session of activeSessions.value) {
-      sessionOptions.push({value: String(session.id), label: `${session.id} (${session.owner.name})`})
-    }
-    await references.SessionSelect.value.updateSelectOptions(sessionOptions)
-  }
+async function onSessionSelected () {
+  await RamiRequestManager.setSession(Number(references.SessionSelect.value?.getSelectedOption()))
 }
 
 const { open: openAuthModal, close: closeAuthModal } = useModal({
   component: TwitchAuthModal,
   attrs: {
-    userSessionData: userSessionData.value,
+    userSessionData: RamiRequestManager.getUserSession(),
     onCloseModal() {
       closeAuthModal()
     },
     onLogin() {
-      if (!userSessionValid.value) {
+      if (!RamiRequestManager.isUserSessionValid()) {
         navigateTo('/api/v1/rrm/twitch/auth', {external: true})
       }
     },
     onLogout() {
-      if (userSessionValid.value) {
-        userSession.clear().then((result) => {
-          console.log("session logged out")
-          reloadNuxtApp()
-        })
+      if (RamiRequestManager.isUserSessionValid()) {
+        RamiRequestManager.clearUserSession()
       }
     }
   },
@@ -138,14 +89,10 @@ const { open: openAuthModal, close: closeAuthModal } = useModal({
 const { open: openCreateSessionModal, close: closeCreateSessionModal } = useModal({
   component: CreateSessionModal,
   attrs: {
-    userSessionData: userSessionData.value,
-    moddedChannels: moddedChannels.value,
+    userSessionData: RamiRequestManager.getUserSession(),
+    moddedChannels: await RamiRequestManager.getModdedChannels(),
     onCloseModal() {
       closeCreateSessionModal()
-    },
-    async onSessionCreated() {
-      await refreshActiveSessions()
-      await closeCreateSessionModal()
     }
   },
 })
@@ -153,8 +100,8 @@ const { open: openCreateSessionModal, close: closeCreateSessionModal } = useModa
 async function openCreateRequestModalWithContext() {
   patchCreateRequestModal({
     attrs: {
-      userSessionData: userSessionData.value,
-      sessionData: currentSession.value,
+      userSessionData: RamiRequestManager.getUserSession(),
+      sessionData: await RamiRequestManager.getSession(),
     }
   })
   await openCreateRequestModal()
@@ -162,8 +109,8 @@ async function openCreateRequestModalWithContext() {
 const { open: openCreateRequestModal, close: closeCreateRequestModal, patchOptions: patchCreateRequestModal } = useModal({
   component: CreateRequestModal,
   attrs: {
-    userSessionData: userSessionData.value,
-    sessionData: currentSession.value,
+    userSessionData: RamiRequestManager.getUserSession(),
+    sessionData: await RamiRequestManager.getSession(),
     onCloseModal() {
       closeCreateRequestModal()
     },
@@ -173,66 +120,44 @@ const { open: openCreateRequestModal, close: closeCreateRequestModal, patchOptio
   },
 })
 
-async function updateTimers() {
-  if (references.UptimeText.value) {
-    if (currentSession.value) {
-      let sessionStartDate = new Date(currentSession.value.startTime)
-      let milliseconds = Math.floor(Date.now() - sessionStartDate.getTime())
-      let seconds = Math.floor(milliseconds / 1000);
-      let minutes = Math.floor(seconds / 60);
-      let hours = Math.floor(minutes / 60);
-      minutes = minutes - (hours * 60);
-      seconds = seconds - (((hours * 60) + minutes) * 60)
-      references.UptimeText.value.innerText = `${hours}h ${minutes}m ${seconds}s`
-    } else {
-      references.UptimeText.value.innerText = `N/A`
-    }
-  }
-  if (references.PingText.value) {
-    let pingStartTime = Date.now()
-    await $fetch("/api/ping")
-    let pingEndTime = Date.now()
-    references.PingText.value.innerText = `${Math.floor(pingEndTime - pingStartTime)}ms`
-  }
-}
-
-async function selectSession() {
-  let selection = references.SessionSelect.value!.getSelectedOption()
-  if (selection === "none") {
-    currentSession.value = null
-    console.log(`Session selection cleared.`)
-  } else {
-    for (let session of activeSessions.value) {
-      if (String(session.id) === String(selection)) {
-        currentSession.value = session
-        console.log(`Session ${selection} selected.`)
-      }
-    }
-  }
-}
-
-async function selectChannel() {
-  let selection = references.ChannelSelect.value!.getSelectedOption()
-  if (selection === "none") {
-    console.log(`Channel selection cleared.`)
-  } else {
-    console.log(`Channel ${selection} selected.`)
-    if (twitchPlayer.value) {
-      twitchPlayer.value.setChannel(selection)
-    } else {
-      let TwitchOptions = {
-        width: "100%",
-        height: window.screen.height * 0.6,
-        channel: selection,
-        autoplay: true,
-        muted: true,
-        parent: ["louismayes.xyz", "localhost"]
-      };
-      // @ts-ignore
-      twitchPlayer.value = new Twitch.Player("EmbeddedTwitchPlayer", TwitchOptions)
-    }
-  }
-}
+//
+// async function selectSession() {
+//   let selection = references.SessionSelect.value!.getSelectedOption()
+//   if (selection === "none") {
+//     currentSession.value = null
+//     console.log(`Session selection cleared.`)
+//   } else {
+//     for (let session of activeSessions.value) {
+//       if (String(session.id) === String(selection)) {
+//         currentSession.value = session
+//         console.log(`Session ${selection} selected.`)
+//       }
+//     }
+//   }
+// }
+//
+// async function selectChannel() {
+//   let selection = references.ChannelSelect.value!.getSelectedOption()
+//   if (selection === "none") {
+//     console.log(`Channel selection cleared.`)
+//   } else {
+//     console.log(`Channel ${selection} selected.`)
+//     if (twitchPlayer.value) {
+//       twitchPlayer.value.setChannel(selection)
+//     } else {
+//       let TwitchOptions = {
+//         width: "100%",
+//         height: window.screen.height * 0.6,
+//         channel: selection,
+//         autoplay: true,
+//         muted: true,
+//         parent: ["louismayes.xyz", "localhost"]
+//       };
+//       // @ts-ignore
+//       twitchPlayer.value = new Twitch.Player("EmbeddedTwitchPlayer", TwitchOptions)
+//     }
+//   }
+// }
 </script>
 
 <template>
@@ -246,12 +171,12 @@ async function selectChannel() {
       <toolbar-button ref="AuthButton" @button-clicked="openAuthModal">
         <div class="relative w-fit h-fit inline-block mr-2 ">
           <div class="bg-purple-900 rounded-full animate-ping absolute align-middle inset-0"/>
-          <icon v-if="!userSessionValid" name="mdi:twitch" class="size-6 align-middle"/>
+          <icon v-if="!RamiRequestManager.isUserSessionValid()" name="mdi:twitch" class="size-6 align-middle"/>
         </div>
-        <nuxt-img v-if="userSessionValid" :src="userSessionData.profile_image_url" class="size-6 rounded-sm inline-block mr-2 align-middle" placeholder/>
-        {{userSessionValid ? userSessionData.display_name : "Login to Twitch"}}
+        <nuxt-img v-if="RamiRequestManager.isUserSessionValid()" :src="RamiRequestManager.getUserSession()!.profile_image_url" class="size-6 rounded-sm inline-block mr-2 align-middle" placeholder/>
+        {{RamiRequestManager.isUserSessionValid() ? RamiRequestManager.getUserSession()!.display_name : "Login to Twitch"}}
       </toolbar-button>
-      <toolbar-select ref="SessionSelect" @select-changed="selectSession">
+      <toolbar-select ref="SessionSelect" @select-changed="onSessionSelected">
         Session:
       </toolbar-select>
       <toolbar-button ref="CreateSessionButton" @button-clicked="openCreateSessionModal" class="hover:bg-red-900 hover:text-red-300 bg-red-950 text-red-400">
@@ -263,7 +188,7 @@ async function selectChannel() {
       <!--MID BAR GAP-->
       <div class="grow"/>
       <!--RIGHT SIDE CONTROLS-->
-      <toolbar-button ref="HelpButton" @button-clicked="refreshActiveSessions">
+      <toolbar-button ref="HelpButton">
         Help
       </toolbar-button>
       <toolbar-button disabled>
@@ -272,7 +197,7 @@ async function selectChannel() {
     </div>
     <div ref="ToolbarRow2" class="w-full h-fit flex flex-row divide-x divide-neutral-700">
       <!--SESSION CONTROLS-->
-      <toolbar-select ref="ChannelSelect" @select-changed="selectChannel" default-select="No Stream">
+      <toolbar-select ref="ChannelSelect" default-select="No Stream">
         Twitch Channel:
       </toolbar-select>
       <toolbar-button class="" disabled>
@@ -317,10 +242,8 @@ async function selectChannel() {
         <control-button ref="RequestQueuePrevious" icon="material-symbols:fast-rewind-rounded" colour="Blue">Previous</control-button>
         <control-button ref="RequestQueueNext" icon="material-symbols:fast-forward-rounded" colour="Blue">Next</control-button>
         <control-button ref="RequestQueueAdd" icon="material-symbols:add-2-rounded" colour="Green" @button-clicked="openCreateRequestModalWithContext">Add</control-button>
-        aaa {{requestList.value}}
-        bbb {{currentSession?.requests}}
         <div ref="RequestQueue" class="h-40 resize-y overflow-y-scroll overflow-x-clip text-pretty min-h-20 w-full rounded-md bg-neutral-950 flex flex-col">
-          <request-item v-for="request in sortedRequestList" :request="request"/>
+          <request-item v-for="request in RamiRequestManager.getRequestQueue()" :request="request"/>
         </div>
       </control-category>
     </div>

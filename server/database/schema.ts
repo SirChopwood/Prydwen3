@@ -1,74 +1,52 @@
-import { relations } from 'drizzle-orm';
 import { integer, sqliteTable, text, primaryKey } from 'drizzle-orm/sqlite-core';
 
 // Main tables
-export const RRM_TwitchChannel = sqliteTable("RRM_TwitchChannel", {
-    id: integer("id").primaryKey(),
-    name: text("channel_name").notNull(),
-    colour: text("channel_colour").default("#FFFFFF"),
-    image: text("channel_image"),
-});
-
 export const RRM_Session = sqliteTable("RRM_Session", {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    requests: text("requests").default("[]"),
-    status: text("status").default("Locked"),
-    startTime: text("start_time").notNull(),
+    id: integer("id")
+        .primaryKey({ autoIncrement: true }),
+
+    requests: text("requests", {mode: "json"})
+        .$type<Array<number>>()
+        .default([]) // Array of RRM_Request ids
+        .notNull(),
+
+    status: text("status", {enum: ["Open", "Locked", "Closed"]})
+        .default("Locked")
+        .notNull(),
+
+    startTime: text("start_time")
+        .notNull(),
+
     endTime: text("end_time"),
-    lastUser: text("last_user").notNull(),
-    ownerId: integer("owner_id").references(() => RRM_TwitchChannel.id),
+
+    lastUser: text("last_user")
+        .notNull(),
+
+    owner: text("owner", {mode: "json"})
+        .$type<{name: String, id: Number}>()
+        .notNull(),
+
+    channels: text("channels", {mode: "json"})
+        .$type<Array<{name: String, id: Number}>>()
+        .default([]),
 });
 
 export const RRM_Request = sqliteTable("RRM_Request", {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    sessionId: integer("session_id").references(() => RRM_Session.id),
-    text: text("text").notNull(),
-    user: text("user").notNull(),
-    code: text("code").notNull(),
-    metadata: text("metadata").notNull(),
+    id: integer("id")
+        .primaryKey({ autoIncrement: true }),
+
+    sessionId: integer()
+        .notNull(),
+
+    text: text("text")
+        .notNull(),
+
+    user: text("user")
+        .notNull(),
+
+    code: text("code")
+        .notNull(),
+
+    metadata: text("metadata", {mode: "json"})
+        .notNull(),
 });
-
-// Junction table for many-to-many relationship between sessions and channels
-export const RRM_SessionToChannels = sqliteTable('RRM_SessionToChannels', {
-    sessionId: integer('session_id')
-        .notNull()
-        .references(() => RRM_Session.id),
-    channelId: integer('channel_id')
-        .notNull()
-        .references(() => RRM_TwitchChannel.id),
-}, (t) => ({
-    pk: primaryKey({ columns: [t.sessionId, t.channelId] })
-}));
-
-// Relations definitions
-export const RRM_TwitchChannelRelations = relations(RRM_TwitchChannel, ({ many }) => ({
-    ownedSessions: many(RRM_Session),
-    RRM_sessionToChannels: many(RRM_SessionToChannels)
-}));
-
-export const RRM_SessionRelations = relations(RRM_Session, ({ one, many }) => ({
-    owner: one(RRM_TwitchChannel, {
-        fields: [RRM_Session.ownerId],
-        references: [RRM_TwitchChannel.id],
-    }),
-    requests: many(RRM_Request),
-    RRM_SessionToChannels: many(RRM_SessionToChannels)
-}));
-
-export const RRM_RequestRelations = relations(RRM_Request, ({ one }) => ({
-    session: one(RRM_Session, {
-        fields: [RRM_Request.sessionId],
-        references: [RRM_Session.id],
-    })
-}));
-
-export const RRM_SessionToChannelsRelations = relations(RRM_SessionToChannels, ({ one }) => ({
-    session: one(RRM_Session, {
-        fields: [RRM_SessionToChannels.sessionId],
-        references: [RRM_Session.id],
-    }),
-    channel: one(RRM_TwitchChannel, {
-        fields: [RRM_SessionToChannels.channelId],
-        references: [RRM_TwitchChannel.id],
-    }),
-}));
