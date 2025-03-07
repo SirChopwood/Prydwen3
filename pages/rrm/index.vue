@@ -20,7 +20,7 @@ definePageMeta({
   layout: "panel"
 })
 
-
+let twitchPlayer: any;
 let references = {
   Toolbar: useTemplateRef("Toolbar"),
   ToolbarRow1: useTemplateRef("ToolbarRow1"),
@@ -64,6 +64,7 @@ watch(RamiRequestManager.timeSinceStart, (newValue, oldValue) => {
 
 async function onSessionSelected () {
   await RamiRequestManager.setSession(Number(references.SessionSelect.value?.getSelectedOption()))
+  await references.ChannelSelect.value?.updateSelectOptions(RamiRequestManager.getChannelSelectOptions(), true)
 }
 
 const { open: openAuthModal, close: closeAuthModal } = useModal({
@@ -101,7 +102,7 @@ async function openCreateRequestModalWithContext() {
   patchCreateRequestModal({
     attrs: {
       userSessionData: RamiRequestManager.getUserSession(),
-      sessionData: await RamiRequestManager.getSession(),
+      sessionData: RamiRequestManager.getSession(),
     }
   })
   await openCreateRequestModal()
@@ -110,7 +111,7 @@ const { open: openCreateRequestModal, close: closeCreateRequestModal, patchOptio
   component: CreateRequestModal,
   attrs: {
     userSessionData: RamiRequestManager.getUserSession(),
-    sessionData: await RamiRequestManager.getSession(),
+    sessionData: RamiRequestManager.getSession(),
     onCloseModal() {
       closeCreateRequestModal()
     },
@@ -120,44 +121,28 @@ const { open: openCreateRequestModal, close: closeCreateRequestModal, patchOptio
   },
 })
 
-//
-// async function selectSession() {
-//   let selection = references.SessionSelect.value!.getSelectedOption()
-//   if (selection === "none") {
-//     currentSession.value = null
-//     console.log(`Session selection cleared.`)
-//   } else {
-//     for (let session of activeSessions.value) {
-//       if (String(session.id) === String(selection)) {
-//         currentSession.value = session
-//         console.log(`Session ${selection} selected.`)
-//       }
-//     }
-//   }
-// }
-//
-// async function selectChannel() {
-//   let selection = references.ChannelSelect.value!.getSelectedOption()
-//   if (selection === "none") {
-//     console.log(`Channel selection cleared.`)
-//   } else {
-//     console.log(`Channel ${selection} selected.`)
-//     if (twitchPlayer.value) {
-//       twitchPlayer.value.setChannel(selection)
-//     } else {
-//       let TwitchOptions = {
-//         width: "100%",
-//         height: window.screen.height * 0.6,
-//         channel: selection,
-//         autoplay: true,
-//         muted: true,
-//         parent: ["louismayes.xyz", "localhost"]
-//       };
-//       // @ts-ignore
-//       twitchPlayer.value = new Twitch.Player("EmbeddedTwitchPlayer", TwitchOptions)
-//     }
-//   }
-// }
+async function onChannelSelected() {
+  let selection = references.ChannelSelect.value!.getSelectedLabel()
+  if (selection === "No Stream") {
+    console.log(`Channel selection cleared.`)
+  } else {
+    console.log(`Channel ${selection} selected.`)
+    if (twitchPlayer) {
+      twitchPlayer.setChannel(selection)
+    } else {
+      let TwitchOptions = {
+        width: "100%",
+        height: window.screen.height * 0.6,
+        channel: selection,
+        autoplay: true,
+        muted: true,
+        parent: ["louismayes.xyz", "localhost"]
+      };
+      // @ts-ignore
+      twitchPlayer = new Twitch.Player("EmbeddedTwitchPlayer", TwitchOptions)
+    }
+  }
+}
 </script>
 
 <template>
@@ -197,7 +182,7 @@ const { open: openCreateRequestModal, close: closeCreateRequestModal, patchOptio
     </div>
     <div ref="ToolbarRow2" class="w-full h-fit flex flex-row divide-x divide-neutral-700">
       <!--SESSION CONTROLS-->
-      <toolbar-select ref="ChannelSelect" default-select="No Stream">
+      <toolbar-select ref="ChannelSelect" default-select="No Stream" @select-changed="onChannelSelected">
         Twitch Channel:
       </toolbar-select>
       <toolbar-button class="" disabled>
@@ -211,7 +196,7 @@ const { open: openCreateRequestModal, close: closeCreateRequestModal, patchOptio
   <div class="w-full flex flex-row gap-4 p-4">
     <div class="rounded-md bg-neutral-900 p-2 grow relative">
       <div class="h-fit w-full rounded-md bg-neutral-950 border-purple-950 border-2">
-        <icon v-if="!twitchPlayer" name="mdi:twitch" class="size-1/3 text-purple-950 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
+        <icon v-if="!twitchPlayer" name="mdi:twitch" class="size-1/3 text-purple-950 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse -z-50" />
         <div id="EmbeddedTwitchPlayer"/>
       </div>
     </div>

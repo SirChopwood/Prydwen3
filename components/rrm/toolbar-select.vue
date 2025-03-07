@@ -28,9 +28,12 @@ export default defineComponent({
     },
     getSelectedOption() {
       return this.$refs.Select.options[this.$refs.Select.selectedIndex].value
+    },
+    getSelectedLabel() {
+      return this.$refs.Select.options[this.$refs.Select.selectedIndex].label
     }
   },
-  expose: ["Select", "updateSelectOptions", "SelectChanged", "getSelectedOption"],
+  expose: ["Select", "updateSelectOptions", "SelectChanged", "getSelectedOption", "getSelectedLabel"],
 })
 </script>
 

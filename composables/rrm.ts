@@ -92,6 +92,23 @@ class RRM_Session_Manager {
         }
     }
 
+    getChannelSelectOptions () {
+        let options: Array<{ value: string; label: string }> = []
+        if (this.#currentSession.value && this.#currentSession.value.channels) {
+            options.push({
+                value: String(this.#currentSession.value.owner.id),
+                label: String(this.#currentSession.value.owner.name)
+            })
+            for (let channel of this.#currentSession.value.channels) {
+                options.push({
+                    value: String(channel.id),
+                    label: String(channel.name)
+                })
+            }
+        }
+        return options
+    }
+
     async refreshSessions () {
         let { data, status, error } = await useFetch("/api/v1/rrm/session/fetch", {method: "POST", body: JSON.stringify({})})
         console.log(data.value)
@@ -118,7 +135,7 @@ class RRM_Session_Manager {
         console.log(await this.getSession())
     }
 
-    async getSession () {
+    getSession () {
         if (this.#currentSession.value && this.#currentSession.value!.id === this.#currentSessionId.value) {
             return this.#currentSession.value
         } else {
