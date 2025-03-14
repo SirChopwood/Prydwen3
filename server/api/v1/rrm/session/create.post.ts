@@ -14,5 +14,5 @@ export default defineEventHandler(async (event) => {
             throw createError({statusCode: 400, statusMessage: `Channel ${channel.name} is already in an active session.`})
         }
     }
-    return await createSession(context.body.user, context.body.owner, context.body.channels, true)
+    return await createSession(context.body.user, context.body.owner, context.body.channels, context.body.sources, true)
 })

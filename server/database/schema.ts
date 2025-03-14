@@ -14,6 +14,11 @@ export const RRM_Session = sqliteTable("RRM_Session", {
         .default("Locked")
         .notNull(),
 
+    sources: text("sources", {mode: "json"})
+        .$type<Array<String>>()
+        .default(["PlainText"])
+        .notNull(),
+
     startTime: text("start_time")
         .notNull(),
 
@@ -28,7 +33,8 @@ export const RRM_Session = sqliteTable("RRM_Session", {
 
     channels: text("channels", {mode: "json"})
         .$type<Array<{name: String, id: Number}>>()
-        .default([]),
+        .default([])
+        .notNull(),
 });
 
 export const RRM_Request = sqliteTable("RRM_Request", {

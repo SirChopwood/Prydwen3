@@ -55,7 +55,7 @@ export async function fetchSessionByChannel(channel: {id: number, name: string},
 }
 
 // Create a new session in the database.
-export async function createSession(user: string, owningChannel: {id: number, name: string}, additionalChannels: Array<{id: number, name: string}> = [], blocking: boolean = false) {
+export async function createSession(user: string, owningChannel: {id: number, name: string}, additionalChannels: Array<{id: number, name: string}> = [], sources: Array<string>, blocking: boolean = false) {
     let db = useDrizzle()
     try {
         await db.insert(tables.RRM_Session).values({
@@ -63,7 +63,8 @@ export async function createSession(user: string, owningChannel: {id: number, na
             lastUser: user,
             owner: owningChannel,
             status: "Open",
-            channels: additionalChannels
+            channels: additionalChannels,
+            sources: sources
         })
     } catch (error) {
         console.log(error)
