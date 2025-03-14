@@ -28,7 +28,6 @@ export default defineEventHandler(async (event) => {
                     if (sessionUnique) {
                         activeSessions.push(channelSession[0])
                     }
-                    console.log(activeSessions)
                 }
             }
         } else {

@@ -57,6 +57,13 @@
       "when": 1741324996058,
       "tag": "0007_wise_hammerhead",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1741908557859,
+      "tag": "0008_icy_firebird",
+      "breakpoints": true
     }
   ]
 }

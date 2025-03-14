@@ -38,6 +38,9 @@ export const RRM_Request = sqliteTable("RRM_Request", {
     sessionId: integer()
         .notNull(),
 
+    timestamp: text("timestamp")
+        .notNull(),
+
     text: text("text")
         .notNull(),
 

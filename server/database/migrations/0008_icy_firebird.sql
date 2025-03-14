@@ -1,0 +1,1 @@
+ALTER TABLE `RRM_Request` ADD `timestamp` text NOT NULL;
