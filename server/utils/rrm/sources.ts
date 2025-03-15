@@ -28,8 +28,11 @@ export async function PyPy(request: string) {
             localization: Array<any>,
             groups: Array<string>,
         }
+        const ytRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/gi
+        let ytRequest = ytRegex.exec(request)
         for (let song of data.songs) {
-            if (String(song.id) === String(request) || String(song.originalUrl[0]) === String(request)) {
+            // If Request matches ID or YT URL
+            if (String(song.id) === String(request) || (ytRequest && String(song.originalUrl[0]) === String(ytRequest[0]))) {
                 requestData.code = String(song.id)
                 requestData.text = song.name
                 requestData.metadata["Source"] = "PyPy"
@@ -48,6 +51,7 @@ export async function PlainText(request: string) {
     let requestData = {text: "", code: "", metadata: {} as Record<string, string>}
     requestData.text = request
     requestData.code = request
+    requestData.metadata["Source"] = "PlainText"
     console.log(`Processed ${request} as Plain Text.`)
     return requestData
 }
