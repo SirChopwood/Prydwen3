@@ -228,7 +228,7 @@ async function onChannelSelected() {
         <control-button ref="RequestQueueNext" icon="material-symbols:fast-forward-rounded" colour="Blue">Next</control-button>
         <control-button ref="RequestQueueAdd" icon="material-symbols:add-2-rounded" colour="Green" @button-clicked="openCreateRequestModalWithContext">Add</control-button>
         <div ref="RequestQueue" class="h-40 resize-y overflow-y-scroll overflow-x-clip text-pretty min-h-20 w-full rounded-md bg-neutral-950 flex flex-col">
-          <request-item v-for="request in RamiRequestManager.getRequestQueue()" :request="request"/>
+          <request-item v-for="requestItem of RamiRequestManager.requestListOrdered.value" :request="requestItem"/>
         </div>
       </control-category>
     </div>

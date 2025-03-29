@@ -11,6 +11,8 @@ const emit = defineEmits([
     "closeModal",
 ])
 let submitButton = useTemplateRef("submitButton")
+let sourceSelect = useTemplateRef("sourceSelect")
+let selectedSources = ref<Array<string>>([])
 
 let selectedChannels = ref<Array<string>>([])
 let owningChannel = ref("")
@@ -48,7 +50,8 @@ async function submit() {
       })[0],
       "channels": props.moddedChannels.filter((v) => {
         return selectedChannels.value.includes(v.id)
-      })
+      }),
+      "sources": [selectedSources.value]
     }
     requestBody.owner.id = Number(requestBody.owner.id)
     for (let channel in requestBody.channels) {
@@ -99,7 +102,7 @@ async function submit() {
       </div>
       <div class="flex flex-row w-full">
         <div class="basis-1/4">Request Type</div>
-        <select class="grow bg-neutral-800 px-2 py-1 rounded-sm text-secondary hover:bg-neutral-700 outline outline-0 focus:outline-1 outline-primary transition duration-150" v-model="requestType">
+        <select ref="sourceSelect" class="grow bg-neutral-800 px-2 py-1 rounded-sm text-secondary hover:bg-neutral-700 outline outline-0 focus:outline-1 outline-primary transition duration-150" v-model="requestType">
           <option class="text-neutral-400 bg-neutral-900" value="PyPy" selected>[VRC] PyPy Dance World</option>
           <option class="text-neutral-400 bg-neutral-900" value="PyPy" disabled>[VRC] VRDancing World</option>
           <option class="text-neutral-400 bg-neutral-900" value="PyPy" disabled>YouTube</option>
