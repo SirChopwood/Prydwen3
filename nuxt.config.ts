@@ -27,5 +27,11 @@ export default defineNuxtConfig({
             openAPI: true
         }
     },
-    hub: {}
+    hub: {
+      bindings: {
+        observability: {
+          logs: true,
+        },
+      },
+    },
 })
