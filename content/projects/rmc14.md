@@ -4,6 +4,7 @@ description: "Coordinated Sprite work, public repository triage and system imple
 tags:
   - "Teamwork"
   - "Custom Engine"
+  - "Work-In-Progress"
 thumbnail: "/images/projects/adv_guild_manager/agm_logo.png"
 timestamp: 1746850501
 buttonTexts:
