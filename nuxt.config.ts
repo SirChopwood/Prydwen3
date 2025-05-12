@@ -27,10 +27,10 @@ export default defineNuxtConfig({
         }
     },
     hub: {
-        bindings: {
-            observability: {
-                logs: true
-            }
-        }
-    }
+      bindings: {
+        observability: {
+          logs: true,
+        },
+      },
+    },
 })
