@@ -1,5 +1,5 @@
 import type {User, UserSessionComposable} from "#auth-utils";
-import type {RRM_Session} from "~/server/utils/drizzle";
+import type {RRM_Session, RRM_Request} from "~/server/utils/drizzle";
 import {useUserSession} from "#build/imports";
 
 export function useSessionManager() {
@@ -8,83 +8,69 @@ export function useSessionManager() {
 
 class RRM_Session_Manager {
     private userSession: UserSessionComposable | null = null
-    private currentSession: Ref<RRM_Session | null> = ref(null)
-    private sessionList: Ref<Array<RRM_Session>> = ref([])
-    private currentSessionId: Ref<number | null> = ref(null)
-    private requestListIds: Ref<Record<number, RRM_Request>> = ref([])
-    requestListOrdered: Ref<Array<RRM_Request>> = ref([])
-    timeSinceStart: Ref<{milliseconds: number, seconds: number, minutes: number, hours: number, text: string}> =
-        ref({milliseconds: 0, seconds: 0, minutes: 0, hours: 0, text: "N/A"})
+    private moddedChannels: Ref<Array<{id: number, name: string}> | null> = ref(null)
+    private sessionList: Ref<Record<number, RRM_Session>> = ref({})
+    private currentSessionId: Ref<number> = ref(0)
+    private requestList: Ref<Record<number, RRM_Request>> = ref([])
+    refreshTimerPaused: Ref<boolean> = ref(true)
+    uptime: Ref<string> = ref("N/A")
+    pingInterval: Ref<string> = ref("N/A")
 
     constructor() {
-        console.log("Rami Request Manager - Loading...")
-
-        watch(this.requestListIds, (list) => {
-            this.requestListOrdered.value = []
-            if (this.currentSession.value !== null) {
-                for (let index of this.currentSession.value.requests) {
-                    this.requestListOrdered.value.push(this.requestListIds.value[index])
-                }
-            }
-            console.log("Queue", this.requestListOrdered.value)
-        })
-
-        // Ensure we are authed with Twitch
+        console.log("Rami Request Manager 1.2 - Loading...")
         this.userSession = useUserSession()
-        if (this.isUserSessionValid()) {
-            console.log("Logged into Twitch.")
-        } else {
-            console.log("Logged out of Twitch!")
-        }
-
-        // Ensure we can fetch data from the API
-        this.refreshSessions().then(() => {
-            console.log("Rami Request Manager - Ready...")
-        })
+        console.log(`Client is logged ${this.getUserSessionValid ? "into" : "out of"} Twitch`)
     }
 
+    /**
+     * Should be run once when the onMounted event fires on owning page, allowing for any runtime setup.
+     */
     async onMounted () {
-        setInterval(this.refreshSessions.bind(this), 5*1000) // Update SessionList every 5s
+        console.log("Rami Request Manager - Mounted")
+
+        await this.refreshModdedChannels()
+        console.log("Rami Request Manager - Modded Channels Refreshed")
+
         await this.refreshSessions()
-        //setInterval(this.refreshRequests.bind(this), 5*1000) // Update RequestList every 5s
-        //await this.refreshRequests()
-        setInterval(this.refreshTimer.bind(this), 1000) // Update Timer every second
-        this.refreshTimer()
-        console.log("Rami Request Manager - Running!")
+        setInterval(this.refreshSessions.bind(this), 10*1000) // Update SessionList every 10s
+        console.log("Rami Request Manager - Sessions Refreshed")
+
+        await this.refreshRequests()
+        setInterval(this.refreshRequests.bind(this), 3*1000) // Update SessionList every 3s
+        console.log("Rami Request Manager - Requests Refreshed")
+
+        this.refreshUptime()
+        setInterval(this.refreshUptime.bind(this), 1000) // Update Timer every second
+        console.log("Rami Request Manager - Internal Timer Setup")
+
+        this.refreshTimerPaused.value = false
+        console.log("Rami Request Manager - Running! :3")
     }
 
-    refreshTimer () {
-        let time = {milliseconds: 0, seconds: 0, minutes: 0, hours: 0, text: "N/A"}
-        if (this.currentSession.value) {
-            let sessionStartDate = new Date(this.currentSession.value.startTime)
-            time.milliseconds = Math.floor(Date.now() - sessionStartDate.getTime())
-            time.seconds = Math.floor(time.milliseconds / 1000);
-            time.minutes = Math.floor(time.seconds / 60);
-            time.hours = Math.floor(time.minutes / 60);
-            time.minutes = time.minutes - (time.hours * 60);
-            time.seconds = time.seconds - (((time.hours * 60) + time.minutes) * 60)
-            time.text = `${time.hours}h ${time.minutes}m ${time.seconds}s`
+
+    // USER SESSION
+    /**
+     * Check if the current session has a valid login.
+     */
+    get getUserSessionValid () {
+        if (this.userSession?.user.value) {
+            console.log(this.userSession?.user.value)
+            return this.userSession?.user.value
         }
-        this.timeSinceStart.value = time
+        return false
     }
 
-    isUserSessionValid() {
-        if (this.userSession) {
-            return this.userSession.loggedIn.value
-        } else {
-            return false
-        }
+    /**
+     * Gets the user's current login session.
+     */
+    get getUserSession () {
+        return this.userSession
     }
 
-    getUserSession() {
-        if (this.userSession) {
-            return this.userSession.user.value as User
-        } else {
-            return null
-        }
-    }
-
-    clearUserSession() {
+    /**
+     * Clears out the current UserSession, functionally logging the user out.
+     */
+    async clearUserSession () {
         if (this.userSession) {
             this.userSession.clear().then((result: any) => {
                 console.log("Logged out of Twitch!")
@@ -93,24 +79,111 @@ class RRM_Session_Manager {
         }
     }
 
-    async getModdedChannels () {
+    /**
+     * @returns {String} Gets the profile of the logged-in user.
+     */
+    get getUserProfile () {
+        if (this.getUserSessionValid !== null) {
+            return this.userSession!.user.value
+        }
+    }
+
+
+    // TWITCH API
+    /**
+     * Fetches all channels the user is Moderator in on Twitch and updates the internal cache.
+     * Use {@link this.getModdedChannels} to get them.
+     */
+    async refreshModdedChannels () {
         let { data, status, error } = await useFetch("/api/v1/rrm/twitch/moderated", {method: "POST", body: JSON.stringify({})})
-        console.log(data.value)
         if (status.value === "success" && data.value) {
-            return data.value
+            this.moddedChannels.value = data.value
         } else {
             console.log(error)
         }
     }
 
-    getChannelSelectOptions () {
+    /**
+     * @returns {Array<{id: number, name: string}} Gets all channels the user is Moderator in on Twitch.
+     */
+    get getModdedChannels () {
+        return this.moddedChannels.value
+    }
+
+
+    // RRM SESSION
+    /**
+     * Fetches all currently active sessions the user is a moderator for.
+     */
+    async refreshSessions () {
+        if (this.refreshTimerPaused.value) {return}
+        let ping = Date.now()
+        let { data, status, error } = await useFetch("/api/v1/rrm/session/fetch", {method: "POST", body: JSON.stringify({})})
+        this.updatePing(ping, status.value !== "success")
+
+        if (status.value === "success" && data.value) {
+            let newList: Record<number, RRM_Session> = {}
+            for (let session of data.value) {
+                newList[session.id] = session as RRM_Session
+            }
+            this.sessionList.value = newList
+            return
+        } else {
+            console.log(error.value)
+            return
+        }
+    }
+
+    /**
+     * @returns {Array<RRM_Session>} Gets all currently active Sessions.
+     */
+    get getActiveSessions () {
+        return this.sessionList.value
+    }
+
+    /**
+     * @returns {RRM_Session} Gets the currently selected session.
+     */
+    get getCurrentSession () {
+        return this.sessionList.value[this.currentSessionId.value]
+    }
+
+    /**
+     * @returns {Array<{ value: string; label: string }>} Gets the Select Options for all Active Sessions.
+     */
+    get getActiveSessionOptions () {
         let options: Array<{ value: string; label: string }> = []
-        if (this.currentSession.value && this.currentSession.value.channels) {
+        if (this.sessionList.value) {
+            for (let session of Object.values(this.sessionList.value)) {
+                options.push({value: session.id.toString(), label: `[ ${session.id} ] - ${session.owner.name}`})
+            }
+        }
+        return options
+    }
+
+    /**
+     * Sets the current session.
+     * @param value The ID of the session you want to select.
+     */
+    setCurrentSession (value: number) {
+        if (Object.keys(this.sessionList.value).includes(String(value))) {
+            this.currentSessionId.value = value
+            console.log(`Current Session ID is set to ${value}`)
+        }
+    }
+
+    /**
+     * @returns {Array<{ value: string; label: string }>} Gets the Channel Options for the Current Session.
+     */
+    get getCurrentSessionChannelOptions () {
+        let options: Array<{ value: string; label: string }> = []
+        let currentSession = this.getCurrentSession
+        if (currentSession && currentSession.channels.length > 0) {
             options.push({
-                value: String(this.currentSession.value.owner.id),
-                label: String(this.currentSession.value.owner.name)
+                value: String(currentSession.owner.id),
+                label: String(currentSession.owner.name)
             })
-            for (let channel of this.currentSession.value.channels) {
+            for (let channel of currentSession.channels) {
                 options.push({
                     value: String(channel.id),
                     label: String(channel.name)
@@ -120,60 +193,75 @@ class RRM_Session_Manager {
         return options
     }
 
-    async refreshSessions () {
-        let { data, status, error } = await useFetch("/api/v1/rrm/session/fetch", {method: "POST", body: JSON.stringify({})})
-        console.log(data.value)
-        if (status.value === "success" && data.value) {
-            if (this.sessionList.value && this.currentSessionId && this.sessionList.value?.requests !== data.value?.requests) {
-                await this.refreshRequests()
-            }
-            this.sessionList.value = data.value as Array<RRM_Session>
-        } else {
-            console.log(error)
-        }
-    }
 
-    async getSessionsSelectOptions () {
-        let options: Array<{ value: string; label: string }> = []
-        if (this.sessionList.value) {
-            for (let session of this.sessionList.value) {
-                options.push({value: session.id.toString(), label: `[ ${session.id} ] - ${session.owner.name}`})
-            }
-        }
-        return options
-    }
-
-    async setSession (sessionId: number) {
-        this.currentSessionId.value = sessionId
-        console.log(`Session ID Updated to ${sessionId}.`)
-        console.log(await this.getSession())
-    }
-
-    getSession () {
-        if (this.currentSession.value && this.currentSession.value!.id === this.currentSessionId.value) {
-            return this.currentSession.value
-        } else {
-            if (this.currentSessionId.value && this.sessionList.value.length > 0) {
-                for (let session of this.sessionList.value) {
-                    if (session.id === this.currentSessionId.value) {
-                        this.currentSession.value = session
-                        return this.currentSession.value
-                    }
-                }
-            }
-        }
-    }
-
+    // RRM REQUESTS
+    /**
+     * Refreshes the list of requests that are currently open and accessable to the user.
+     */
     async refreshRequests () {
+        if (this.refreshTimerPaused.value) {return}
+        let ping = Date.now()
         let { data, status, error } = await useFetch("/api/v1/rrm/request/fetch", {method: "POST", body: JSON.stringify({session: this.currentSessionId.value})})
+        this.updatePing(ping, status.value !== "success")
+
         if (status.value === "success" && data.value) {
-            this.requestListIds.value = {}
+            let newList: Record<number, RRM_Request> = {}
             for (let request of data.value) {
-                this.requestListIds.value[request.id] = request
+                newList[request.id] = request
             }
-            console.log(this.requestListIds.value)
+            this.requestList.value = newList
+            return
         } else {
             console.log(error)
+            return
+        }
+    }
+
+    /**
+     * @returns {Array<RRM_Request>} The request array sorted by their ID.
+     */
+    get getRequestsByID () {
+        return this.requestList.value
+    }
+
+    /**
+     * @returns {Array<RRM_Request>} The request array sorted by their order in the Session.
+     */
+    get getRequestsByOrder () {
+        let orderedRequests = [] as Array<RRM_Request>
+        if (this.getCurrentSession) {
+            for (let index of this.getCurrentSession.requests) {
+                orderedRequests.push(this.requestList.value[index])
+            }
+            return orderedRequests
+        }
+    }
+
+    // MISC
+    private refreshUptime () {
+        let time = {milliseconds: 0, seconds: 0, minutes: 0, hours: 0, text: "N/A"}
+        if (this.getCurrentSession) {
+            let sessionStartDate = new Date(this.getCurrentSession.startTime)
+            time.milliseconds = Math.floor(Date.now() - sessionStartDate.getTime())
+            time.seconds = Math.floor(time.milliseconds / 1000);
+            time.minutes = Math.floor(time.seconds / 60);
+            time.hours = Math.floor(time.minutes / 60);
+            time.minutes = time.minutes - (time.hours * 60);
+            time.seconds = time.seconds - (((time.hours * 60) + time.minutes) * 60)
+            time.text = `${time.hours}h ${time.minutes}m ${time.seconds}s`
+        }
+        this.uptime.value = time.text
+    }
+
+    get getUptime () {
+        return this.uptime.value
+    }
+
+    private updatePing (startTime: number, failed = false) {
+        if (failed) {
+            this.pingInterval.value = "N/A"
+        } else {
+            this.pingInterval.value = `${Date.now() - startTime}ms`
         }
     }
 }

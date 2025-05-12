@@ -21,14 +21,14 @@ export async function validateRequest<schema extends z.ZodTypeAny> (event: H3Eve
     return context
 }
 
-// Ensures the request is made with a valid Twitch OAuth session. If it fails to find a UserSession, a 400 response will be sent with the reasoning.
+// Ensures the request is made with a valid Twitch OAuth session. If it fails to find a UserSession, a 401 response will be sent with the reasoning.
 export async function fetchUserSession(event: H3Event<Request>) {
     let userSession = await getUserSession(event)
 
     if (userSession.user && userSession.secure) {
         return userSession
     } else {
-        throw createError({statusCode: 400, statusMessage: "User is not authenticated."})
+        throw createError({statusCode: 401, statusMessage: "User is not authenticated."})
     }
 }
 

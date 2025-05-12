@@ -53,34 +53,34 @@ let RamiRequestManager = useSessionManager()
 
 onMounted(async () => {
   await RamiRequestManager.onMounted()
-  await references.SessionSelect.value?.updateSelectOptions(await RamiRequestManager.getSessionsSelectOptions())
+  await references.SessionSelect.value?.updateSelectOptions(RamiRequestManager.getActiveSessionOptions)
 })
 
-watch(RamiRequestManager.timeSinceStart, (newValue, oldValue) => {
+watch(RamiRequestManager.uptime, (newValue, oldValue) => {
   if (references.UptimeText.value) {
-    references.UptimeText.value.innerText = newValue.text
+    references.UptimeText.value.innerText = newValue
   }
 })
 
 async function onSessionSelected () {
-  await RamiRequestManager.setSession(Number(references.SessionSelect.value?.getSelectedOption()))
-  await references.ChannelSelect.value?.updateSelectOptions(RamiRequestManager.getChannelSelectOptions(), true)
+  RamiRequestManager.setCurrentSession(Number(references.SessionSelect.value?.getSelectedOption()))
+  await references.ChannelSelect.value?.updateSelectOptions(RamiRequestManager.getCurrentSessionChannelOptions, false)
 }
 
 const { open: openAuthModal, close: closeAuthModal } = useModal({
   component: TwitchAuthModal,
   attrs: {
-    userSessionData: RamiRequestManager.getUserSession(),
+    userSessionData: RamiRequestManager.getUserProfile,
     onCloseModal() {
       closeAuthModal()
     },
     onLogin() {
-      if (!RamiRequestManager.isUserSessionValid()) {
+      if (!RamiRequestManager.getUserSessionValid) {
         navigateTo('/api/v1/rrm/twitch/auth', {external: true})
       }
     },
     onLogout() {
-      if (RamiRequestManager.isUserSessionValid()) {
+      if (RamiRequestManager.getUserSessionValid) {
         RamiRequestManager.clearUserSession()
       }
     }
@@ -90,8 +90,8 @@ const { open: openAuthModal, close: closeAuthModal } = useModal({
 const { open: openCreateSessionModal, close: closeCreateSessionModal } = useModal({
   component: CreateSessionModal,
   attrs: {
-    userSessionData: RamiRequestManager.getUserSession(),
-    moddedChannels: await RamiRequestManager.getModdedChannels(),
+    userSessionData: RamiRequestManager.getUserProfile,
+    moddedChannels: RamiRequestManager.getModdedChannels,
     onCloseModal() {
       closeCreateSessionModal()
     }
@@ -101,21 +101,24 @@ const { open: openCreateSessionModal, close: closeCreateSessionModal } = useModa
 async function openCreateRequestModalWithContext() {
   patchCreateRequestModal({
     attrs: {
-      userSessionData: RamiRequestManager.getUserSession(),
-      sessionData: RamiRequestManager.getSession(),
+      userSessionData: RamiRequestManager.getUserProfile,
+      sessionData: RamiRequestManager.getCurrentSession,
     }
   })
+  RamiRequestManager.refreshTimerPaused.value = true
   await openCreateRequestModal()
 }
 const { open: openCreateRequestModal, close: closeCreateRequestModal, patchOptions: patchCreateRequestModal } = useModal({
   component: CreateRequestModal,
   attrs: {
-    userSessionData: RamiRequestManager.getUserSession(),
-    sessionData: RamiRequestManager.getSession(),
+    userSessionData: RamiRequestManager.getUserProfile,
+    sessionData: RamiRequestManager.getCurrentSession,
     onCloseModal() {
+      RamiRequestManager.refreshTimerPaused.value = false
       closeCreateRequestModal()
     },
     async onRequestCreated() {
+      //await RamiRequestManager.refreshSessions()
       await closeCreateSessionModal()
     }
   },
@@ -156,15 +159,15 @@ async function onChannelSelected() {
       <toolbar-button ref="AuthButton" @button-clicked="openAuthModal">
         <div class="relative w-fit h-fit inline-block mr-2 ">
           <div class="bg-purple-900 rounded-full animate-ping absolute align-middle inset-0"/>
-          <icon v-if="!RamiRequestManager.isUserSessionValid()" name="mdi:twitch" class="size-6 align-middle"/>
+          <icon v-if="!RamiRequestManager.getUserSessionValid" name="mdi:twitch" class="size-6 align-middle"/>
         </div>
-        <nuxt-img v-if="RamiRequestManager.isUserSessionValid()" :src="RamiRequestManager.getUserSession()!.profile_image_url" class="size-6 rounded-sm inline-block mr-2 align-middle" placeholder/>
-        {{RamiRequestManager.isUserSessionValid() ? RamiRequestManager.getUserSession()!.display_name : "Login to Twitch"}}
+        <nuxt-img v-if="RamiRequestManager.getUserSessionValid" :src="RamiRequestManager.getUserProfile!.profile_image_url" class="size-6 rounded-sm inline-block mr-2 align-middle" placeholder/>
+        {{RamiRequestManager.getUserSessionValid ? RamiRequestManager.getUserProfile!.display_name : "Login to Twitch"}}
       </toolbar-button>
       <toolbar-select ref="SessionSelect" @select-changed="onSessionSelected">
         Session:
       </toolbar-select>
-      <toolbar-button ref="CreateSessionButton" @button-clicked="openCreateSessionModal" class="hover:bg-red-900 hover:text-red-300 bg-red-950 text-red-400">
+      <toolbar-button ref="CreateSessionButton" @button-clicked="openCreateSessionModal" :disabled="!RamiRequestManager.getUserSessionValid" class="hover:bg-red-900 hover:text-red-300 bg-red-950 text-red-400">
         Create Session
       </toolbar-button>
       <toolbar-button ref="HostButton">
@@ -177,7 +180,7 @@ async function onChannelSelected() {
         Help
       </toolbar-button>
       <toolbar-button disabled>
-        Ping: <span ref="PingText" class="codeblock min-w-10 inline-block"><000</span>
+        Ping: <span ref="PingText" class="codeblock ml-1 min-w-24 inline-block">{{RamiRequestManager.refreshTimerPaused ? "PAUSED" : RamiRequestManager.pingInterval.value}}</span>
       </toolbar-button>
     </div>
     <div ref="ToolbarRow2" class="w-full h-fit flex flex-row divide-x divide-neutral-700">
@@ -228,7 +231,7 @@ async function onChannelSelected() {
         <control-button ref="RequestQueueNext" icon="material-symbols:fast-forward-rounded" colour="Blue">Next</control-button>
         <control-button ref="RequestQueueAdd" icon="material-symbols:add-2-rounded" colour="Green" @button-clicked="openCreateRequestModalWithContext">Add</control-button>
         <div ref="RequestQueue" class="h-40 resize-y overflow-y-scroll overflow-x-clip text-pretty min-h-20 w-full rounded-md bg-neutral-950 flex flex-col">
-          <request-item v-for="requestItem of RamiRequestManager.requestListOrdered.value" :request="requestItem"/>
+          <request-item v-if="Object.keys(RamiRequestManager.getRequestsByID).length > 0" v-for="requestItem of RamiRequestManager.getRequestsByOrder" :request="requestItem"/>
         </div>
       </control-category>
     </div>

@@ -31,7 +31,7 @@ export default defineEventHandler(async (event) => {
                 }
             }
         } else {
-            throw createError({statusCode: 400, statusMessage: "User is not authenticated."})
+            throw createError({statusCode: 401, statusMessage: "User is not authenticated."})
         }
     }
     return activeSessions
