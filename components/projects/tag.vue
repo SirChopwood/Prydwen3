@@ -6,8 +6,8 @@ const Tags = {
   "Unreal Engine": "blue", //  `<div class="bg-blue-950 hover:bg-blue-900 outline-blue-600 text-blue-100">`
   "Open Source": "pink", //  `<div class="bg-pink-950 hover:bg-pink-900 outline-pink-600 text-pink-100">`
   "Teamwork": "teal", //  `<div class="bg-teal-950 hover:bg-teal-900 outline-teal-600 text-teal-100">`
-  "Blender": "orange", //  `<div class="bg-orange-950 hover:bg-orange-900 outline-orange-600 text-orange-100">`
-  "NodeJS": "green", //  `<div class="bg-green-950 hover:bg-green-900 outline-green-600 text-green-100">`
+  "Modelling": "orange", //  `<div class="bg-orange-950 hover:bg-orange-900 outline-orange-600 text-orange-100">`
+  "JS/Node": "green", //  `<div class="bg-green-950 hover:bg-green-900 outline-green-600 text-green-100">`
   "Work-In-Progress": "yellow", //  `<div class="bg-yellow-950 hover:bg-yellow-900 outline-yellow-600 text-yellow-100">`
   "External Link": "purple", //  `<div class="bg-purple-950 hover:bg-purple-900 outline-purple-600 text-purple-100">`
 }

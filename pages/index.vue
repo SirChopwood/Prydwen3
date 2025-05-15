@@ -50,7 +50,6 @@ export default defineComponent({
       <div class="font-jetbrains text-2xl text-white mb-2 bg-neutral-950 w-fit py-1 px-4">> My projects <span class="animation-blinker">_</span></div>
       <div class="flex flex-col justify-center items-center gap-4">
         <div ref="ProjectTable" class="flex flex-row  justify-center gap-4 flex-wrap mt-4">
-          <projects-card title="Rami's Request Manager" thumbnail="/images/misc/ramiris.png" link="/rrm">A twitch panel and overlay for managing chat based interaction, such as song requests for DJs.</projects-card>
           <projects-card v-for="project in sortedProjects"
                          :title="project.title"
                          :description="project.description"
@@ -58,8 +57,24 @@ export default defineComponent({
                          :thumbnail="project.thumbnail"
                          :project-tags="project.tags"
           />
-          <projects-card title="Ramiris' Heresy" thumbnail="/images/projects/external/ramiris_heresy.png" link="https://steamcommunity.com/sharedfiles/filedetails/?id=2167631151">Custom Warhammer 40k Weapons and armour for Arma 3</projects-card>
-          <projects-card title="FLAGS Mod" thumbnail="/images/projects/external/flags_mod.png" link="https://ficsit.app/mod/XLuK6Ci158x4G">Functionally Lacking And Great Style - Satisfactory Modding</projects-card>
+          <projects-card title="Rami's Request Manager"
+                         thumbnail="/images/projects/external/rrm.png"
+                         link="/rrm"
+                         :project-tags="['External Link', 'Open Source', 'Solo']">
+            A twitch panel and overlay for managing chat based interaction, such as song requests for DJs.
+          </projects-card>
+          <projects-card title="Ramiris' Heresy"
+                         thumbnail="/images/projects/external/ramiris_heresy.png"
+                         link="https://steamcommunity.com/sharedfiles/filedetails/?id=2167631151"
+                         :project-tags="['External Link', 'Solo']">
+            Custom Warhammer 40k Weapons and armour for Arma 3
+          </projects-card>
+          <projects-card title="FLAGS Mod"
+                         thumbnail="/images/projects/external/flags_mod.png"
+                         link="https://ficsit.app/mod/XLuK6Ci158x4G"
+                         :project-tags="['External Link', 'Unreal Engine', 'Modelling', 'Solo']">
+            Functionally Lacking And Great Style - Satisfactory Modding
+          </projects-card>
         </div>
       </div>
     </div>

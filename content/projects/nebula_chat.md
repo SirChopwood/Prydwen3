@@ -4,7 +4,7 @@ description: "A recreation of the advanced chat system found in Space Station 13
 tags:
   - "Solo"
   - "Unreal Engine"
-  - "Blender"
+  - "Modelling"
   - "Work-In-Progress"
 thumbnail: "/images/projects/nebula_chat/day2_config.png"
 timestamp: 1733788800
