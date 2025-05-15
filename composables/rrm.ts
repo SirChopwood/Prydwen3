@@ -1,4 +1,4 @@
-import type {User, UserSessionComposable} from "#auth-utils";
+import type {UserSessionComposable} from "#auth-utils";
 import type {RRM_Session, RRM_Request} from "~/server/utils/drizzle";
 import {useUserSession} from "#build/imports";
 
@@ -7,11 +7,12 @@ export function useSessionManager() {
 }
 
 class RRM_Session_Manager {
+    private eventStream = new EventSource("/api/v1/rrm/sse")
     private userSession: UserSessionComposable | null = null
     private moddedChannels: Ref<Array<{id: number, name: string}> | null> = ref(null)
     private sessionList: Ref<Record<number, RRM_Session>> = ref({})
     private currentSessionId: Ref<number> = ref(0)
-    private requestList: Ref<Record<number, RRM_Request>> = ref([])
+    private requestList: Ref<Record<number, RRM_Request>> = ref({})
     refreshTimerPaused: Ref<boolean> = ref(true)
     uptime: Ref<string> = ref("N/A")
     pingInterval: Ref<string> = ref("N/A")
@@ -29,15 +30,34 @@ class RRM_Session_Manager {
         console.log("Rami Request Manager - Mounted")
 
         await this.refreshModdedChannels()
-        console.log("Rami Request Manager - Modded Channels Refreshed")
+        console.log(`Rami Request Manager - Logged in, moderating for channels: ${JSON.stringify(this.moddedChannels.value)}`)
 
-        await this.refreshSessions()
-        setInterval(this.refreshSessions.bind(this), 10*1000) // Update SessionList every 10s
-        console.log("Rami Request Manager - Sessions Refreshed")
+        setTimeout(async () => {
+            await this.refreshSessions()
+            await $fetch("/api/v1/rrm/session/set", {method: "POST", body: {"sessionId": null}})
+        }, 100)
+        console.log("Rami Request Manager - Sessions Refresh Queued.")
 
-        await this.refreshRequests()
-        setInterval(this.refreshRequests.bind(this), 3*1000) // Update SessionList every 3s
-        console.log("Rami Request Manager - Requests Refreshed")
+        this.eventStream.onopen = () => {
+            console.log(`[SSE] Connected to ${this.eventStream.url}`)
+        }
+        this.eventStream.onmessage = (event) => {
+            if (event.data.startsWith("SESSION-")) {
+                let newSession = JSON.parse(event.data.replace("SESSION-","")) as RRM_Session
+                this.sessionList.value[newSession.id] = newSession
+            } else if (event.data.startsWith("REQUEST-")) {
+                let newList: Record<number, RRM_Request> = {}
+                let requests = JSON.parse(event.data.replace("REQUEST-","")) as Array<RRM_Request>
+                for (let request of requests) {
+                    newList[request.id] = request
+                }
+                this.requestList.value = newList
+            }
+        }
+        this.eventStream.onerror = (event) => {
+            console.log(`[SSE] Error from ${this.eventStream.url} - ${event.type}`)
+        }
+        console.log("Rami Request Manager - SSE Launching")
 
         this.refreshUptime()
         setInterval(this.refreshUptime.bind(this), 1000) // Update Timer every second
@@ -54,8 +74,7 @@ class RRM_Session_Manager {
      */
     get getUserSessionValid () {
         if (this.userSession?.user.value) {
-            console.log(this.userSession?.user.value)
-            return this.userSession?.user.value
+            return Boolean(this.userSession?.user.value)
         }
         return false
     }
@@ -165,9 +184,10 @@ class RRM_Session_Manager {
      * Sets the current session.
      * @param value The ID of the session you want to select.
      */
-    setCurrentSession (value: number) {
+    async setCurrentSession (value: number) {
         if (Object.keys(this.sessionList.value).includes(String(value))) {
             this.currentSessionId.value = value
+            await $fetch("/api/v1/rrm/session/set", {method: "POST", body: JSON.stringify({sessionId: value})})
             console.log(`Current Session ID is set to ${value}`)
         }
     }
@@ -180,12 +200,12 @@ class RRM_Session_Manager {
         let currentSession = this.getCurrentSession
         if (currentSession && currentSession.channels.length > 0) {
             options.push({
-                value: String(currentSession.owner.id),
+                value: String(currentSession.owner.name),
                 label: String(currentSession.owner.name)
             })
             for (let channel of currentSession.channels) {
                 options.push({
-                    value: String(channel.id),
+                    value: String(channel.name),
                     label: String(channel.name)
                 })
             }
@@ -228,13 +248,16 @@ class RRM_Session_Manager {
      * @returns {Array<RRM_Request>} The request array sorted by their order in the Session.
      */
     get getRequestsByOrder () {
-        let orderedRequests = [] as Array<RRM_Request>
         if (this.getCurrentSession) {
+            let orderedRequests = [] as Array<RRM_Request>
             for (let index of this.getCurrentSession.requests) {
-                orderedRequests.push(this.requestList.value[index])
+                if (this.requestList.value[index]){
+                    orderedRequests.push(this.requestList.value[index])
+                }
             }
             return orderedRequests
         }
+        return
     }
 
     // MISC

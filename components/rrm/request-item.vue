@@ -1,10 +1,14 @@
 <script lang="ts">
 import {defineComponent} from 'vue'
+import type { RRM_Request } from '~/server/utils/drizzle';
 
 export default defineComponent({
   name: "request-item",
   props: {
-    request: Object,
+    request: {
+      type: Object as PropType<RRM_Request>,
+      required: true,
+    },
   },
   mounted() {
     this.$refs.Button.addEventListener("click", () => {
@@ -22,9 +26,9 @@ export default defineComponent({
       </svg>
     </div>
     <div class="flex grow flex-col py-1 mb-1">
-      <div class="group-hover:text-primary text-neutral-200 text-lg">{{ request.text }}</div>
+      <div class="group-hover:text-primary text-neutral-200 text-lg truncate whitespace-pre-wrap">{{ request.text }}</div>
       <div class="group-hover:text-primary flex flex-row items-center">
-        <button ref="Button" class="codeblock hover:outline-primary hover:text-neutral-200">
+        <button ref="Button" class="codeblock hover:outline-primary hover:text-neutral-200 truncate whitespace-pre-wrap">
           {{ request.code }}
         </button>
         <div class="pl-2 text-sm"> by {{ request.user }}</div>

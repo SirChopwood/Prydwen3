@@ -9,6 +9,7 @@ import {useModal} from "vue-final-modal";
 import CreateSessionModal from "~/components/rrm/create-session-modal.vue";
 import CreateRequestModal from "~/components/rrm/create-request-modal.vue";
 import {useSessionManager} from "~/composables/rrm";
+import NewSelect from "~/components/rrm/new-select.vue";
 
 useHead({
   title: "Rami Request Manager",
@@ -25,14 +26,12 @@ let references = {
   Toolbar: useTemplateRef("Toolbar"),
   ToolbarRow1: useTemplateRef("ToolbarRow1"),
   AuthButton: useTemplateRef("AuthButton"),
-  SessionSelect: useTemplateRef("SessionSelect"),
   CreateSessionButton: useTemplateRef("CreateSessionButton"),
   HostButton: useTemplateRef("HostButton"),
   HostButtonName: useTemplateRef("HostButtonName"),
   HelpButton: useTemplateRef("HelpButton"),
   PingText: useTemplateRef("PingText"),
   ToolbarRow2: useTemplateRef("ToolbarRow2"),
-  ChannelSelect: useTemplateRef("ChannelSelect"),
   UptimeText: useTemplateRef("UptimeText"),
   OverlayButton: useTemplateRef("OverlayButton"),
   Controls: useTemplateRef("Controls"),
@@ -53,19 +52,8 @@ let RamiRequestManager = useSessionManager()
 
 onMounted(async () => {
   await RamiRequestManager.onMounted()
-  await references.SessionSelect.value?.updateSelectOptions(RamiRequestManager.getActiveSessionOptions)
+  //await references.SessionSelect.value?.updateSelectOptions(RamiRequestManager.getActiveSessionOptions)
 })
-
-watch(RamiRequestManager.uptime, (newValue, oldValue) => {
-  if (references.UptimeText.value) {
-    references.UptimeText.value.innerText = newValue
-  }
-})
-
-async function onSessionSelected () {
-  RamiRequestManager.setCurrentSession(Number(references.SessionSelect.value?.getSelectedOption()))
-  await references.ChannelSelect.value?.updateSelectOptions(RamiRequestManager.getCurrentSessionChannelOptions, false)
-}
 
 const { open: openAuthModal, close: closeAuthModal } = useModal({
   component: TwitchAuthModal,
@@ -124,8 +112,7 @@ const { open: openCreateRequestModal, close: closeCreateRequestModal, patchOptio
   },
 })
 
-async function onChannelSelected() {
-  let selection = references.ChannelSelect.value!.getSelectedLabel()
+async function onChannelSelected(selection: string) {
   if (selection === "No Stream") {
     console.log(`Channel selection cleared.`)
   } else {
@@ -151,7 +138,7 @@ async function onChannelSelected() {
 <template>
 <div>
   <div ref="Toolbar" class="w-full h-fit mt-0 drop-shadow-md flex flex-col divide-y-2 divide-neutral-900 stripes">
-    <div ref="ToolbarRow1" class="w-full h-fit flex flex-row divide-x divide-neutral-700  drop-shadow-md">
+    <fieldset ref="ToolbarRow1" class="w-full h-fit flex flex-row divide-x divide-neutral-700  drop-shadow-md">
       <!--PANEL CONTROLS-->
       <toolbar-button class="text-primary font-bold" disabled>
         Rami Request Manager
@@ -164,9 +151,9 @@ async function onChannelSelected() {
         <nuxt-img v-if="RamiRequestManager.getUserSessionValid" :src="RamiRequestManager.getUserProfile!.profile_image_url" class="size-6 rounded-sm inline-block mr-2 align-middle" placeholder/>
         {{RamiRequestManager.getUserSessionValid ? RamiRequestManager.getUserProfile!.display_name : "Login to Twitch"}}
       </toolbar-button>
-      <toolbar-select ref="SessionSelect" @select-changed="onSessionSelected">
+      <new-select default="None" :options="RamiRequestManager.getActiveSessionOptions" @update:model-value="async ($event) => (await RamiRequestManager.setCurrentSession(Number($event)))">
         Session:
-      </toolbar-select>
+      </new-select>
       <toolbar-button ref="CreateSessionButton" @button-clicked="openCreateSessionModal" :disabled="!RamiRequestManager.getUserSessionValid" class="hover:bg-red-900 hover:text-red-300 bg-red-950 text-red-400">
         Create Session
       </toolbar-button>
@@ -182,19 +169,19 @@ async function onChannelSelected() {
       <toolbar-button disabled>
         Ping: <span ref="PingText" class="codeblock ml-1 min-w-24 inline-block">{{RamiRequestManager.refreshTimerPaused ? "PAUSED" : RamiRequestManager.pingInterval.value}}</span>
       </toolbar-button>
-    </div>
-    <div ref="ToolbarRow2" class="w-full h-fit flex flex-row divide-x divide-neutral-700">
+    </fieldset>
+    <fieldset :disabled="!RamiRequestManager.getUserSessionValid" ref="ToolbarRow2" class="w-full h-fit flex flex-row divide-x divide-neutral-700">
       <!--SESSION CONTROLS-->
-      <toolbar-select ref="ChannelSelect" default-select="No Stream" @select-changed="onChannelSelected">
+      <new-select default="No Stream" :options="RamiRequestManager.getCurrentSessionChannelOptions" @update:model-value="$event => (onChannelSelected($event))">
         Twitch Channel:
-      </toolbar-select>
+      </new-select>
       <toolbar-button class="" disabled>
-        Uptime: <span ref="UptimeText" class="codeblock min-w-20 inline-block">00000</span>
+        Uptime: <span ref="UptimeText" class="codeblock min-w-20 inline-block">{{RamiRequestManager.uptime.value}}</span>
       </toolbar-button>
       <toolbar-button ref="OverlayButton">
         Open Overlay
       </toolbar-button>
-    </div>
+    </fieldset>
   </div>
   <div class="w-full flex flex-row gap-4 p-4">
     <div class="rounded-md bg-neutral-900 p-2 grow relative">
@@ -203,7 +190,7 @@ async function onChannelSelected() {
         <div id="EmbeddedTwitchPlayer"/>
       </div>
     </div>
-    <div ref="Controls" class="basis-2/5 flex flex-col gap-4 no-scrollbar" style="scrollbar-color: #404040 #171717">
+    <fieldset ref="Controls" :disabled="!RamiRequestManager.getUserSessionValid" class="basis-2/5 flex flex-col gap-4 no-scrollbar" style="scrollbar-color: #404040 #171717">
       <!--SESSION CONTROLS-->
       <control-category title="Session Controls" subtitle="This is how you set if people can make requests.">
         <ul class="list-disc pl-6">
@@ -226,15 +213,17 @@ async function onChannelSelected() {
       </control-category>
 
       <!--REQUEST QUEUE-->
-      <control-category title="Request Queue" subtitle="You can view and rearrange the queue below.">
+      <control-category title="Request Queue" subtitle="You can view and rearrange the queue below. Rearranging is currently not working.">
         <control-button ref="RequestQueuePrevious" icon="material-symbols:fast-rewind-rounded" colour="Blue">Previous</control-button>
         <control-button ref="RequestQueueNext" icon="material-symbols:fast-forward-rounded" colour="Blue">Next</control-button>
         <control-button ref="RequestQueueAdd" icon="material-symbols:add-2-rounded" colour="Green" @button-clicked="openCreateRequestModalWithContext">Add</control-button>
         <div ref="RequestQueue" class="h-40 resize-y overflow-y-scroll overflow-x-clip text-pretty min-h-20 w-full rounded-md bg-neutral-950 flex flex-col">
-          <request-item v-if="Object.keys(RamiRequestManager.getRequestsByID).length > 0" v-for="requestItem of RamiRequestManager.getRequestsByOrder" :request="requestItem"/>
+          <template v-if="RamiRequestManager.getRequestsByOrder && RamiRequestManager.getRequestsByOrder.length > 0">
+            <request-item v-for="requestItem of RamiRequestManager.getRequestsByOrder" :request="requestItem"/>
+          </template>
         </div>
       </control-category>
-    </div>
+    </fieldset>
   </div>
 </div>
 </template>

@@ -23,7 +23,14 @@ export default defineNuxtConfig({
     ],
     nitro: {
         experimental: {
-            openAPI: true
+            openAPI: true,
+            websocket: true
+        },
+        storage: {
+            db: {
+                driver: 'fs',
+                base: './.data/db'
+            }
         }
     },
     hub: {
@@ -32,5 +39,6 @@ export default defineNuxtConfig({
           logs: true,
         },
       },
+        workers: true
     },
 })

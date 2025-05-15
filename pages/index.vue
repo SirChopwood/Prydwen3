@@ -14,27 +14,8 @@ import {defineComponent} from "vue";
 export default defineComponent({
   name: "Home",
   components: {},
-  methods: {
-    async testClick() {
-      const body = await useFetch("/api/123/abc", {
-        method: "POST",
-        body: {
-          "hello": "world"
-        }
-      })
-      console.log(body)
-      let { data: result } = await useFetch("/api/rrm/session/fetch", {
-        method: "POST",
-        body: {
-          "channel": {"id": "11374265", "name": "Ramiiii~"}
-        }
-      })
-      console.log(result)
-      this.$refs.testBox.innerText = JSON.stringify(result, undefined, 2)
-    }
-  },
-  async mounted() {
-  }
+  methods: {},
+  async mounted() {}
 })
 </script>
 
@@ -44,11 +25,6 @@ export default defineComponent({
       <div class="">Hello there. </div>
       <div class="">Welcome! </div>
       <div class="pl-24 w-fit">...<span class="text-neutral-950 bg-primary">I'm Louis</span><span class="animation-blinker">_</span></div>
-    </div>
-
-    <button @click="testClick" class="bg-red-700 text-red-400 p-2 text-2xl">TEST</button>
-    <div ref="testBox" class="w-full min-h-40 bg-gray-400 font-thin text-black rounded-lg border-2 border-black">
-
     </div>
 
     <div ref="SkillTable" class="w-full" >
@@ -66,6 +42,7 @@ export default defineComponent({
           <span class="text-secondary font-bold text-xl">Nebula Chat System</span>  - A recreation of the advanced chat system found in Space Station 13, including telecommunications.
         </banner-image>
         <div ref="ProjectTable" class="flex flex-row  justify-center gap-4 flex-wrap mt-4">
+          <projects-card title="Rami's Request Manager" thumbnail="/images/misc/ramiris.png" link="/rrm">A twitch panel and overlay for managing chat based interaction, such as song requests for DJs.</projects-card>
           <projects-card v-for="project in sortedProjects"
                          :title="project.title"
                          :description="project.description"

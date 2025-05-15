@@ -12,11 +12,9 @@ declare module '#auth-utils' {
         "view_count": number,
         "email": string,
         "created_at": string,
-        "moderated_channels": Array<string>,
     }
 
     interface UserSession {
-        // Add your own fields
     }
 
     interface SecureSessionData {
