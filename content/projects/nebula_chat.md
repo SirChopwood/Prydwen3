@@ -5,6 +5,7 @@ tags:
   - "Solo"
   - "Unreal Engine"
   - "Blender"
+  - "Work-In-Progress"
 thumbnail: "/images/projects/nebula_chat/day2_config.png"
 timestamp: 1733788800
 buttonTexts:
@@ -42,11 +43,11 @@ _In the Telecommunications (TComms) setup each step is controlled by a different
 - (Optional) Messages are logged & scripts are applied by `Servers`.
 - Resulting messages are broadcasted by the `Transmitter`.
 
-<img src="/images/projects/nebula_chat/day1_diagram.png" alt="">
+<img src="/images/projects/nebula_chat/day1_diagram.png" alt=""/>
 
 With those notes made, I also quickly took to blender to model out some placeholder meshes for each point. Shown in order; `Server`, `Mainframes`, `Transmitter`/`Receiver`, `Hub`, `Processor`.
 
-<img src="/images/projects/nebula_chat/day1_models.png" alt="">
+<img src="/images/projects/nebula_chat/day1_models.png" alt=""/>
 
 # 21/11/2024
 ## Day 2 - Initial Proof of Concept
@@ -55,7 +56,7 @@ The first in-engine task was to get an incredibly basic and simple example of th
 To facilitate the system, I created a base `TComms Machine` actor that would be used for communication, holding generalised functions that could be overridden for the handling of a message in all the child actors. This would ensure that there is a consistent method to pass data between the machines as well as simplify later updates to their functionality.
 
 The machines for now would have the ability to directly link them via the Editor, adding any following machines to the preceding one's array. This is then verified at game start. In the future this is where multi tool and wiring functionality could be added to enable dynamically built setups, however, it is out of the scope of this system. Additionally the RouteRadioMessage function will facilitate that need to pass data between machines.
-<img src="/images/projects/nebula_chat/day2_tcomms_machine.png" alt="">
+<img src="/images/projects/nebula_chat/day2_tcomms_machine.png" alt=""/>
 
 ### Receiver
 For the concept, this simply takes any message given and just passes it onwards. Later on it'll be the target to receive a message from external sources.
@@ -65,13 +66,13 @@ Any message given to a hub is checked against its internal list of connected Mai
 The Mainframe applies the channel settings such as colour. It also acts as a way to limit what radio channels a given network can provide support for, in SS13 this is handled via Encryption Keys that you can obtain from headsets or the Heads of Staff's lockers.
 ### Processor
 The processor takes the message and reverses the scrambling algorithm, returning the message to a normal readable state. While not required, lacking this machine will leave a message that vaguely resembles the original, yet with missing characters.
-###Server
+### Server
 For the demo, servers do nothing for now. In the future their primary purpose will be logging as well as the ability to customise any additional message processing. (Such as putting job roles in the message or whitelisting specific IDs to speak a channel.
 ### Transmitter
 The transmitter simply prints text to the debug log for now, however in the future it will be what broadcasts messages to any listening machines.
 <div class="gallery">
-    <img src="/images/projects/nebula_chat/day2_actors.png" alt="" class="">
-    <img src="/images/projects/nebula_chat/day2_config.png" alt="" class="">
+    <img src="/images/projects/nebula_chat/day2_actors.png" alt="" class=""/>
+    <img src="/images/projects/nebula_chat/day2_config.png" alt="" class=""/>
 </div>
 
 

@@ -41,7 +41,7 @@
         box-shadow: 0 0 50px 0 rgba(179, 23, 23, 0.5);
     }
     .codeblock {
-        @apply bg-neutral-800 outline outline-1 outline-neutral-700 rounded-sm px-2 py-0.5 text-neutral-400 font-jetbrains
+        @apply bg-neutral-800 outline outline-1 outline-neutral-700 rounded-sm px-1 py-0 md:px-2 md:py-0.5 text-neutral-400 font-jetbrains
     }
     .gallery {
         @apply grid grid-cols-2 grid-rows-1 items-center w-full gap-2 justify-evenly justify-items-center max-h-80
