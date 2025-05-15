@@ -19,6 +19,7 @@ export default defineComponent({
   },
   methods: {
     async updateSelectOptions(options: Array<{ value: string; label: string }>, showDefault: boolean = true) {
+      if (options.length === 0) {return}
       this.selectOptions = options
       this.showDefault = showDefault
       await nextTick()
@@ -27,9 +28,12 @@ export default defineComponent({
     },
     getSelectedOption() {
       return this.$refs.Select.options[this.$refs.Select.selectedIndex].value
+    },
+    getSelectedLabel() {
+      return this.$refs.Select.options[this.$refs.Select.selectedIndex].label
     }
   },
-  expose: ["Select", "updateSelectOptions", "SelectChanged", "getSelectedOption"],
+  expose: ["Select", "updateSelectOptions", "SelectChanged", "getSelectedOption", "getSelectedLabel"],
 })
 </script>
 

@@ -9,13 +9,14 @@ const props = defineProps([
 
 const emit = defineEmits([
     "closeModal",
-    "sessionCreated",
 ])
 let submitButton = useTemplateRef("submitButton")
+let sourceSelect = useTemplateRef("sourceSelect")
+let selectedSources = ref<Array<string>>([])
 
 let selectedChannels = ref<Array<string>>([])
 let owningChannel = ref("")
-let additionalChannelOptions = ref<Array<{id: string, name: string}>>([])
+let additionalChannelOptions = ref<Array<{id: number, name: string}>>([])
 watch(owningChannel, async (newChannel, oldChannel) => {
   if (props.moddedChannels) {
     additionalChannelOptions.value = props.moddedChannels.filter((v) => {
@@ -49,9 +50,15 @@ async function submit() {
       })[0],
       "channels": props.moddedChannels.filter((v) => {
         return selectedChannels.value.includes(v.id)
-      })
+      }),
+      "sources": [selectedSources.value]
     }
-    let {data: newSession} = await useFetch("/api/rrm/session/create", {
+    requestBody.owner.id = Number(requestBody.owner.id)
+    for (let channel in requestBody.channels) {
+      requestBody.channels[channel].id = Number(requestBody.channels[channel].id)
+    }
+    console.log(props.moddedChannels, props.userSessionData)
+    let {data: newSession} = await useFetch("/api/v1/rrm/session/create", {
       method: "POST",
       body: requestBody,
     })
@@ -60,6 +67,7 @@ async function submit() {
     } else {
       console.log("Error", newSession)
     }
+    emit('closeModal')
   } else {
     console.log("How did you even prompt this to enable?")
   }
@@ -94,7 +102,7 @@ async function submit() {
       </div>
       <div class="flex flex-row w-full">
         <div class="basis-1/4">Request Type</div>
-        <select class="grow bg-neutral-800 px-2 py-1 rounded-sm text-secondary hover:bg-neutral-700 outline outline-0 focus:outline-1 outline-primary transition duration-150" v-model="requestType">
+        <select ref="sourceSelect" class="grow bg-neutral-800 px-2 py-1 rounded-sm text-secondary hover:bg-neutral-700 outline outline-0 focus:outline-1 outline-primary transition duration-150" v-model="requestType">
           <option class="text-neutral-400 bg-neutral-900" value="PyPy" selected>[VRC] PyPy Dance World</option>
           <option class="text-neutral-400 bg-neutral-900" value="PyPy" disabled>[VRC] VRDancing World</option>
           <option class="text-neutral-400 bg-neutral-900" value="PyPy" disabled>YouTube</option>

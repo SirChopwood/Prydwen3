@@ -1,0 +1,1 @@
+ALTER TABLE `RRM_Request` ADD `sessionId` integer NOT NULL;

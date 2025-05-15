@@ -1,106 +1,76 @@
-import {PrismaClient} from "@prisma/client";
-import {TwitchChannel} from "~/server/schema/rrm/twitch";
-import {z} from "zod"
+import {useDrizzle, tables} from "~/server/utils/drizzle";
 
-export async function isChannelRegistered(prisma: PrismaClient, channel: z.infer<typeof TwitchChannel>, silent: boolean = false) {
-    return !!(await getChannel(prisma, channel, silent))
+// Check if a session ID is valid.
+export async function isSessionIdValid(sessionId: number, blocking: boolean = false) {
+    return !!(await fetchSessionById(sessionId, blocking))
 }
 
-export async function getChannel(prisma: PrismaClient, channel: z.infer<typeof TwitchChannel>, silent: boolean = false) {
-    let foundChannel = await prisma.rRM_TwitchChannel.findUnique({
-        where: {
-            id: channel.id,
-            name: channel.name,
+// Fetch a session by its ID.
+export async function fetchSessionById(sessionId: number, blocking: boolean = false) {
+    let foundSession: RRM_Session | undefined
+    try {
+        foundSession = await useDrizzle().query.RRM_Session.findFirst({
+            where: (sessions, {eq}) => {
+                return eq(sessions.id, sessionId)
+            }
+        })
+    } catch (error) {
+        if (blocking) {
+            throw createError({statusCode: 400, statusMessage: `Session '${sessionId}' could not be found.`})
         }
-    })
-    if (foundChannel) {
-        return foundChannel
-    } else if (!silent) {
-        throw createError({statusCode: 400, statusMessage: `Channel '${channel.name}' not registered.`})
+    }
+    if (!foundSession && blocking) {
+        throw createError({statusCode: 400, statusMessage: `Session '${sessionId}' does not exist.`})
     } else {
-        return
+        return foundSession
     }
 }
 
-export async function isChannelInActiveSession(prisma: PrismaClient, channel: z.infer<typeof TwitchChannel>) {
-    let sessions = await getActiveSessionsFromOwner(prisma, channel, true)
-    if (sessions.length === 0) {
-        return false
-    } else {
-        throw createError({statusCode: 400, statusMessage: "Channel is already in an active session."})
-    }
-}
-
-export async function getActiveSessionsFromOwner(prisma: PrismaClient, owner: z.infer<typeof TwitchChannel>, silent: boolean = false) {
-    await isChannelRegistered(prisma, owner, silent)
-    let sessions = await prisma.rRM_Session.findMany({
-        where: {
-            OR: [
-                {
-                    ownerId: {
-                        equals: owner.id
-                    },
-                    status: {
-                        in: ["Locked", "Open"]
-                    }
-                },
-                {
-                    joinedChannels: {
-                        some: {
-                            id: {
-                                equals: owner.id
-                            },
-                            name: {
-                                equals: owner.name
-                            }
-                        }
-                    },
-                    status: {
-                        in: ["Locked", "Open"]
-                    }
-                }
-            ]
-        },
-        include: {
-            owner: true,
-            joinedChannels: true,
+// Fetch the current session of a given Twitch Channel.
+export async function fetchSessionByChannel(channel: {id: number, name: string}, blocking: boolean = false) {
+    let foundSessions: Array<RRM_Session> = []
+    try {
+        let sessionQuery = await useDrizzle().select().from(tables.RRM_Session).where(
+            and(
+                or(
+                    sql`(SELECT 1 FROM json_each(channels) WHERE (value = json(${JSON.stringify(channel)})))`, // Iterate through channels to see if one matches
+                    eq(tables.RRM_Session.owner, channel)
+                ),
+                ne(tables.RRM_Session.status, "Closed")
+            )
+        )
+        if (sessionQuery && sessionQuery[0] !== null) {
+            foundSessions = sessionQuery
         }
-    })
-    if (sessions.length > 0) {
-        return sessions
-    } else if (!silent) {
-        throw createError({statusCode: 400, statusMessage: "Channel is not in an active session."})
+    } catch (error) {
+        if (blocking) {
+            throw createError({statusCode: 400, statusMessage: `No Session for '${channel.name}' could be found.`})
+        }
+    }
+    if (!foundSessions && blocking) {
+        throw createError({statusCode: 400, statusMessage: `No Session for '${channel.name}' could be found.`})
     } else {
-        return []
+        return foundSessions
     }
 }
 
-export async function getSessionById(prisma: PrismaClient, sessionId: number, silent: boolean = false) {
-    let session = await prisma.rRM_Session.findUnique({
-        where: {
-            id: sessionId
-        },
-        include: {
-            owner: true,
-            joinedChannels: true,
+// Create a new session in the database.
+export async function createSession(user: string, owningChannel: {id: number, name: string}, additionalChannels: Array<{id: number, name: string}> = [], sources: Array<string>, blocking: boolean = false) {
+    let db = useDrizzle()
+    try {
+        await db.insert(tables.RRM_Session).values({
+            startTime: new Date().toISOString(),
+            lastUser: user,
+            owner: owningChannel,
+            status: "Open",
+            channels: additionalChannels,
+            sources: sources
+        })
+    } catch (error) {
+        console.log(error)
+        if (blocking) {
+            throw createError({statusCode: 400, statusMessage: `Failed to create new Session.`})
         }
-    })
-    if (!session && !silent) {
-        throw createError({statusCode: 400, statusMessage: "Session not found."})
-    } else {
-        return session
     }
-}
-
-export async function getRequestsBySession(prisma: PrismaClient, sessionId: number, silent: boolean = false) {
-    let requests = await prisma.rRM_Request.findMany({
-        where: {
-            session: sessionId
-        }
-    })
-    if (!requests && !silent) {
-        throw createError({statusCode: 400, statusMessage: "Session not found or has no requests."})
-    } else {
-        return requests
-    }
+    return await fetchSessionByChannel(owningChannel)
 }

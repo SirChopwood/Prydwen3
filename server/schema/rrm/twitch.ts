@@ -35,6 +35,6 @@ export const UserCredentials = z.strictObject({
 })
 
 export const TwitchChannel = z.strictObject({
-    "id": z.string(),
+    "id": z.number(),
     "name": z.string(),
 })

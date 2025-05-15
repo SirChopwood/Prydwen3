@@ -1,5 +1,8 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+    routeRules: {
+        "/rrm/**": {ssr: false}
+    },
     compatibilityDate: '2024-11-01',
     devtools: {enabled: true},
     modules: [
@@ -8,7 +11,6 @@ export default defineNuxtConfig({
       "@nuxt/content",
       "@nuxt/fonts",
       "@nuxtjs/tailwindcss",
-      // "@prisma/nuxt",
       "nuxt-auth-utils",
       "@nuxthub/core"
     ],
@@ -16,15 +18,19 @@ export default defineNuxtConfig({
     icon: {},
     fonts: {},
     tailwindcss: {},
-    prisma: {
-        autoSetupPrisma: true,
-    },
     css: [
         "vue-final-modal/style.css"
     ],
     nitro: {
         experimental: {
-            openAPI: true
+            openAPI: true,
+            websocket: true
+        },
+        storage: {
+            db: {
+                driver: 'fs',
+                base: './.data/db'
+            }
         }
     },
     hub: {
@@ -33,5 +39,6 @@ export default defineNuxtConfig({
           logs: true,
         },
       },
+        workers: true
     },
 })

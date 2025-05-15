@@ -1,0 +1,83 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1740117648766,
+      "tag": "0000_old_mister_sinister",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1740118109838,
+      "tag": "0001_deep_ink",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1740119989857,
+      "tag": "0002_fixed_yellow_claw",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1740287456285,
+      "tag": "0003_misty_magus",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1741285629547,
+      "tag": "0004_last_black_queen",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1741291726991,
+      "tag": "0005_bumpy_falcon",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1741307761132,
+      "tag": "0006_striped_mathemanic",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1741324996058,
+      "tag": "0007_wise_hammerhead",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1741908557859,
+      "tag": "0008_icy_firebird",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1741920880999,
+      "tag": "0009_colorful_sally_floyd",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1742078480901,
+      "tag": "0010_violet_iceman",
+      "breakpoints": true
+    }
+  ]
+}

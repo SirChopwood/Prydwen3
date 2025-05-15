@@ -1,0 +1,1 @@
+ALTER TABLE `RRM_Session` ADD `sources` text DEFAULT '["PlainText"]';

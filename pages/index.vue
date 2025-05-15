@@ -14,6 +14,8 @@ import {defineComponent} from "vue";
 export default defineComponent({
   name: "Home",
   components: {},
+  methods: {},
+  async mounted() {}
 })
 </script>
 
@@ -48,6 +50,7 @@ export default defineComponent({
       <div class="font-jetbrains text-2xl text-white mb-2 bg-neutral-950 w-fit py-1 px-4">> My projects <span class="animation-blinker">_</span></div>
       <div class="flex flex-col justify-center items-center gap-4">
         <div ref="ProjectTable" class="flex flex-row  justify-center gap-4 flex-wrap mt-4">
+          <projects-card title="Rami's Request Manager" thumbnail="/images/misc/ramiris.png" link="/rrm">A twitch panel and overlay for managing chat based interaction, such as song requests for DJs.</projects-card>
           <projects-card v-for="project in sortedProjects"
                          :title="project.title"
                          :description="project.description"

@@ -8,7 +8,7 @@ export const createRequest = z.strictObject({
 })
 
 export const fetchRequests = z.strictObject({
-    "session": z.number(),
+    "sessionId": z.number(),
 })
 
 export const removeRequest = z.strictObject({
