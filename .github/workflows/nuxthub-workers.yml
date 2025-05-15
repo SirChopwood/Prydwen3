@@ -1,12 +1,12 @@
-name: Deploy to NuxtHub
+name: Deploy to NuxtHub Workers
 on: push
 
 jobs:
   deploy:
-    name: "Deploy to NuxtHub"
+    name: "Deploy to NuxtHub Workers"
     runs-on: ubuntu-latest
     environment:
-      name: ${{ github.ref == 'refs/heads/Nuxt' && 'production' || 'preview' }}
+      name: ${{ github.ref == 'refs/heads/Workers' && 'production' || 'preview' }}
       url: ${{ steps.deploy.outputs.deployment-url }}
     permissions:
       contents: read
@@ -37,4 +37,4 @@ jobs:
         uses: nuxt-hub/action@v1
         id: deploy
         with:
-          project-key: prydwen3-mths
+          project-key: prydwen-neb3
