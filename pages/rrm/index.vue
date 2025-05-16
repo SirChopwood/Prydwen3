@@ -18,6 +18,16 @@ definePageMeta({
   title: "Rami Request Manager",
   layout: "panel"
 })
+useSeoMeta({
+  title: "Rami Request Manager",
+  ogTitle: "Rami Request Manager",
+  description: "A twitch panel and overlay for managing chat based interaction, such as song requests for DJs.",
+  ogDescription: "A twitch panel and overlay for managing chat based interaction, such as song requests for DJs.",
+  ogImage: `https://louismayes.xyz/images/projects/external/rrm.png`,
+  twitterImage: `https://louismayes.xyz/images/projects/external/rrm.png`,
+  twitterCard: 'summary_large_image',
+  author: "Ramiris"
+})
 
 let twitchPlayer: any;
 let RamiRequestManager = useRequestManager()

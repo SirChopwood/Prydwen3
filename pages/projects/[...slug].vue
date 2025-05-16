@@ -3,6 +3,18 @@
   const { data: page } = await useAsyncData(route.path, () => {
     return queryCollection('projects').path(route.path).first()
   })
+  useSeoMeta({
+    title: page.value!.title,
+    ogTitle: page.value!.title,
+    description: page.value!.description,
+    ogDescription: page.value!.description,
+    ogImage: `https://louismayes.xyz${page.value!.thumbnail}`,
+    twitterImage: `https://louismayes.xyz${page.value!.thumbnail}`,
+    twitterCard: 'summary_large_image',
+    author: "Louis Mayes",
+    articlePublishedTime: new Date(page.value!.timestamp).toString(),
+    articleTag: page.value!.tags,
+  })
 </script>
 
 <script lang="ts">
