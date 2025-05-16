@@ -18,11 +18,21 @@ class Rami_Request_Manager {
     refreshTimerPaused: Ref<boolean> = ref(true)
     uptime: Ref<string> = ref("N/A")
     pingInterval: Ref<string> = ref("N/A")
+    hostName = ref(localStorage.getItem("hostName") || "")
+
 
     constructor() {
         console.log("Rami Request Manager 1.2 - Loading...")
         this.userSession = useUserSession()
         console.log(`Client is logged ${this.getUserSessionValid ? "into" : "out of"} Twitch`)
+
+        watch(this.hostName, (newName, oldName) => {
+            if (newName === "") {
+                localStorage.removeItem("hostName")
+            } else {
+                localStorage.setItem("hostName", newName);
+            }
+        })
     }
 
     /**
@@ -63,6 +73,7 @@ class Rami_Request_Manager {
 
         this.refreshUptime()
         setInterval(this.refreshUptime.bind(this), 1000) // Update Timer every second
+        setInterval(this.heartbeatPing.bind(this), 5000)
         console.log("Rami Request Manager - Internal Timer Setup")
 
         this.refreshTimerPaused.value = false
@@ -136,10 +147,9 @@ class Rami_Request_Manager {
     /**
      * Fetches all currently active sessions the user is a moderator for.
      */
-    async refreshSessions () {
-        if (this.refreshTimerPaused.value) {return}
+    async refreshSessions (force = false) {
         let ping = Date.now()
-        let { data, status, error } = await useFetch("/api/v1/rrm/session/fetch", {method: "POST", body: JSON.stringify({})})
+        let { data, status, error } = await useFetch("/api/v1/rrm/session/fetch", {method: "POST", body: JSON.stringify({force: force})})
         this.updatePing(ping, status.value !== "success")
 
         if (status.value === "success" && data.value) {
@@ -280,6 +290,13 @@ class Rami_Request_Manager {
 
     get getUptime () {
         return this.uptime.value
+    }
+
+    private async heartbeatPing () {
+        if (this.refreshTimerPaused.value) {return}
+        let ping = Date.now()
+        let request = await $fetch("/api/v1/misc/ping", {method: "POST", body: JSON.stringify({})})
+        this.updatePing(ping, request.hello !== "world")
     }
 
     private updatePing (startTime: number, failed = false) {

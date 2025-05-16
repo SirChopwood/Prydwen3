@@ -8,6 +8,7 @@ import NewSelect from "~/components/rrm/new-select.vue";
 import {useModalManager} from "#imports";
 import CreateSessionModal from "~/components/rrm/modals/create-session-modal.vue";
 import TwitchAuthModal from "~/components/rrm/modals/twitch-auth-modal.vue";
+import HostNameModal from "~/components/rrm/modals/host-name-modal.vue";
 
 useHead({
   title: "Rami Request Manager",
@@ -33,9 +34,13 @@ let twitchPlayer: any;
 let RamiRequestManager = useRequestManager()
 let modalManager = useModalManager(RamiRequestManager)
 
+
 onMounted(async () => {
   await RamiRequestManager.onMounted()
   await modalManager.onMounted()
+  if(RamiRequestManager.hostName.value === ""){
+    await modalManager.showModal("hostName", HostNameModal)
+  }
 })
 //
 // const { open: openAuthModal, close: closeAuthModal } = useModal({
@@ -116,6 +121,10 @@ async function onChannelSelected(selection: string) {
     }
   }
 }
+
+let ping = computed(() => {
+  return RamiRequestManager.refreshTimerPaused.value ? "PAUSED" : RamiRequestManager.pingInterval.value
+})
 </script>
 
 <template>
@@ -140,8 +149,8 @@ async function onChannelSelected(selection: string) {
       <toolbar-button ref="CreateSessionButton" @button-clicked="modalManager.showModal('createSession', CreateSessionModal)" :disabled="!RamiRequestManager.getUserSessionValid" class="hover:bg-red-900 hover:text-red-300 bg-red-950 text-red-400">
         Create Session
       </toolbar-button>
-      <toolbar-button ref="HostButton">
-        Host: <span ref="HostButtonName">The DJ Fry</span>
+      <toolbar-button ref="HostButton" @button-clicked="modalManager.showModal('hostName', HostNameModal)">
+        Host: <span ref="HostButtonName">{{ RamiRequestManager.hostName }}</span>
       </toolbar-button>
       <!--MID BAR GAP-->
       <div class="grow"/>
@@ -150,7 +159,7 @@ async function onChannelSelected(selection: string) {
         Help
       </toolbar-button>
       <toolbar-button disabled>
-        Ping: <span ref="PingText" class="codeblock ml-1 min-w-24 inline-block">{{RamiRequestManager.refreshTimerPaused ? "PAUSED" : RamiRequestManager.pingInterval.value}}</span>
+        Ping: <span ref="PingText" class="codeblock ml-1 min-w-24 inline-block">{{ping}}</span>
       </toolbar-button>
     </fieldset>
     <fieldset :disabled="!RamiRequestManager.getUserSessionValid" ref="ToolbarRow2" class="w-full h-fit flex flex-row divide-x divide-neutral-700">

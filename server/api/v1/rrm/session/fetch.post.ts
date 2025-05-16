@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
     const context = await validateRequest(event, fetchSession, false)
 
     let activeSessions: Array<RRM_Session> = []
-    if (context.body.channel) {
+    if (context.body.channel && !context.body.force) {
         activeSessions = await fetchSessionByChannel(context.body.channel, true)
     } else {
         const userSession = await fetchUserSession(event)

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import ModalTemplate from "~/components/rrm/modal-template.vue";
 import ControlButton from "~/components/rrm/control-button.vue";
+import NewMultiselect from "~/components/rrm/new-multiselect.vue";
 
 const props = defineProps({
   name: {
@@ -14,11 +15,90 @@ const props = defineProps({
   }
 })
 
-let submissionValid = false
-let owningChannel = ref("")
-let selectedSources = ref<Array<string>>([])
-let selectedChannels = ref<Array<string>>([])
-let requestType = ref("")
+let submissionValid = computed(() => {
+  return Boolean(selectedTypes.value.length > 0
+      && owningChannel.value)
+})
+let owningChannel: Ref<number | null> = ref(null)
+function getOwningChannel() {
+  return props.modalManager.requestManager.getModdedChannels!.filter((channel) => {
+    return channel.id === owningChannel.value
+  })[0]
+}
+
+// REQUEST TYPE
+let selectedRequestTypes = ref<Record<string, boolean>>({})
+const requestTypeOptions = [
+  {label: "[VRC] PyPy Dance World", value: "PyPy"},
+  {label: "[VRC] VRDancing World", value: "VRDancing"},
+  {label: "YouTube", value: "YouTube"},
+  {label: "Plain Text", value: "PlainText"},
+]
+// convert true/false to list of types
+let selectedTypes = computed(() => {
+  let newList: Array<String> = []
+  Object.keys(selectedRequestTypes.value).forEach(type => {
+    if (selectedRequestTypes.value[type]) {
+      newList.push(type)
+    }
+  })
+
+  return newList
+})
+
+// ADDITIONAL CHANNELS
+let selectedChannelIds = ref<Record<string, boolean>>({})
+// get options for select
+let additionalChannelOptions = computed(() => {
+  let newList: Array<{label: string, value: string}> = []
+  if (owningChannel) {
+    props.modalManager.requestManager.getModdedChannels?.forEach((channel) => {
+      if (!(channel.id === owningChannel.value)) {
+        newList.push({label: channel.name, value: String(channel.id)})
+      }
+    })
+  }
+  return newList
+})
+// Reset list if owner changed
+watch(owningChannel, async (newChannel) => {
+  Object.keys(selectedChannelIds.value).forEach(channelId => {
+    selectedChannelIds.value[channelId] = false
+  })
+})
+// convert true/false list to list of channels
+let selectedChannels = computed(() => {
+  return props.modalManager.requestManager.getModdedChannels!.filter((channel) => {
+    return (Object.keys(selectedChannelIds.value).includes(String(channel.id)))
+        && (selectedChannelIds.value[String(channel.id)])
+        && (channel.id !== owningChannel.value)
+  })
+})
+
+async function submit() {
+  if (submissionValid) {
+    let requestBody = {
+      "user": props.modalManager.requestManager.hostName.value,
+      "owner": getOwningChannel(),
+      "channels": selectedChannels.value,
+      "sources": selectedTypes.value
+    }
+    let {data: newSession} = await useFetch("/api/v1/rrm/session/create", {
+      method: "POST",
+      body: requestBody,
+    })
+    if (newSession.value) {
+      console.log("New Session Created", newSession.value)
+      await props.modalManager.requestManager.refreshSessions(true)
+    } else {
+      console.log("Error", newSession)
+    }
+
+    await props.modalManager.hideModal(props.name)
+  } else {
+    console.log("How did you even prompt this to enable?")
+  }
+}
 </script>
 
 <template>
@@ -32,35 +112,15 @@ let requestType = ref("")
       </div>
       <div class="flex flex-row w-full">
         <div class="basis-1/4">Additional Channels</div>
-        <div class="grow bg-neutral-800 p-1 rounded-sm flex flex-col h-32">
-<!--          <label v-for="channel of additionalChannelOptions" class="hover:bg-neutral-700 rounded-sm px-1 flex flex-row">-->
-<!--            <input type="checkbox" :value="channel.id" v-model="selectedChannels" class="peer size-0 opacity-0" @change="console.log(selectedChannels)">-->
-<!--            <icon name="mdi:close-thick" class="size-6 collapse peer-checked:visible text-secondary align-middle"/>-->
-<!--            <icon name="mdi:plus-thick" class="size-6 peer-checked:hidden align-middle"/>-->
-<!--            <span class="peer-checked:text-secondary">{{channel.name}}</span>-->
-<!--          </label>-->
-        </div>
+        <new-multiselect :options="additionalChannelOptions" v-model="selectedChannelIds"/>
       </div>
       <div class="flex flex-row w-full">
-        <div class="basis-1/4">Request Type</div>
-        <select ref="sourceSelect" class="grow bg-neutral-800 px-2 py-1 rounded-sm text-secondary hover:bg-neutral-700 outline outline-0 focus:outline-1 outline-primary transition duration-150" v-model="requestType">
-          <option class="text-neutral-400 bg-neutral-900" value="PyPy" selected>[VRC] PyPy Dance World</option>
-          <option class="text-neutral-400 bg-neutral-900" value="PyPy" disabled>[VRC] VRDancing World</option>
-          <option class="text-neutral-400 bg-neutral-900" value="PyPy" disabled>YouTube</option>
-          <option class="text-neutral-400 bg-neutral-900" value="PyPy" disabled>Plain Text</option>
-        </select>
+        <div class="basis-1/4">Request Types</div>
+        <new-multiselect :options="requestTypeOptions" v-model="selectedRequestTypes"/>
       </div>
     </div>
-
-
-
-
-
-
-
-
     <template v-slot:footer>
-      <control-button ref="submitButton" icon="mdi:send-check" colour="Green" :disabled="!submissionValid">Submit</control-button>
+      <control-button icon="mdi:send-check" colour="Green" @button-clicked="submit" :disabled="!submissionValid">Submit</control-button>
     </template>
   </modal-template>
 </template>
