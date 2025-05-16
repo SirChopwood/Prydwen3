@@ -1,15 +1,13 @@
 <script setup lang="ts">
 import ToolbarButton from "~/components/rrm/toolbar-button.vue";
-import ToolbarSelect from "~/components/rrm/toolbar-select.vue";
 import ControlCategory from "~/components/rrm/control-category.vue";
 import ControlButton from "~/components/rrm/control-button.vue";
 import RequestItem from "~/components/rrm/request-item.vue";
-import TwitchAuthModal from "~/components/rrm/twitch-auth-modal.vue";
-import {useModal} from "vue-final-modal";
-import CreateSessionModal from "~/components/rrm/create-session-modal.vue";
-import CreateRequestModal from "~/components/rrm/create-request-modal.vue";
-import {useSessionManager} from "~/composables/rrm";
+import {useRequestManager} from "~/composables/rrm";
 import NewSelect from "~/components/rrm/new-select.vue";
+import {useModalManager} from "#imports";
+import CreateSessionModal from "~/components/rrm/modals/create-session-modal.vue";
+import TwitchAuthModal from "~/components/rrm/modals/twitch-auth-modal.vue";
 
 useHead({
   title: "Rami Request Manager",
@@ -22,95 +20,70 @@ definePageMeta({
 })
 
 let twitchPlayer: any;
-let references = {
-  Toolbar: useTemplateRef("Toolbar"),
-  ToolbarRow1: useTemplateRef("ToolbarRow1"),
-  AuthButton: useTemplateRef("AuthButton"),
-  CreateSessionButton: useTemplateRef("CreateSessionButton"),
-  HostButton: useTemplateRef("HostButton"),
-  HostButtonName: useTemplateRef("HostButtonName"),
-  HelpButton: useTemplateRef("HelpButton"),
-  PingText: useTemplateRef("PingText"),
-  ToolbarRow2: useTemplateRef("ToolbarRow2"),
-  UptimeText: useTemplateRef("UptimeText"),
-  OverlayButton: useTemplateRef("OverlayButton"),
-  Controls: useTemplateRef("Controls"),
-  SessionQueueOpen: useTemplateRef("SessionQueueOpen"),
-  SessionQueueLock: useTemplateRef("SessionQueueLock"),
-  SessionQueueClose: useTemplateRef("SessionQueueClose"),
-  NotificationMessageText: useTemplateRef("NotificationMessageText"),
-  OverlayMessageWelcome: useTemplateRef("OverlayMessageWelcome"),
-  OverlayMessagePause: useTemplateRef("OverlayMessagePause"),
-  OverlayMessageCustom: useTemplateRef("OverlayMessageCustom"),
-  OverlayMessageRemove: useTemplateRef("OverlayMessageRemove"),
-  RequestQueuePrevious: useTemplateRef("RequestQueuePrevious"),
-  RequestQueueNext: useTemplateRef("RequestQueueNext"),
-  RequestQueueAdd: useTemplateRef("RequestQueueAdd"),
-  RequestQueue: useTemplateRef("RequestQueue")
-}
-let RamiRequestManager = useSessionManager()
+let RamiRequestManager = useRequestManager()
+let modalManager = useModalManager(RamiRequestManager)
 
 onMounted(async () => {
   await RamiRequestManager.onMounted()
-  //await references.SessionSelect.value?.updateSelectOptions(RamiRequestManager.getActiveSessionOptions)
+  await modalManager.onMounted()
 })
-
-const { open: openAuthModal, close: closeAuthModal } = useModal({
-  component: TwitchAuthModal,
-  attrs: {
-    userSessionData: RamiRequestManager.getUserProfile,
-    onCloseModal() {
-      closeAuthModal()
-    },
-    onLogin() {
-      if (!RamiRequestManager.getUserSessionValid) {
-        navigateTo('/api/v1/rrm/twitch/auth', {external: true})
-      }
-    },
-    onLogout() {
-      if (RamiRequestManager.getUserSessionValid) {
-        RamiRequestManager.clearUserSession()
-      }
-    }
-  },
-})
-
-const { open: openCreateSessionModal, close: closeCreateSessionModal } = useModal({
-  component: CreateSessionModal,
-  attrs: {
-    userSessionData: RamiRequestManager.getUserProfile,
-    moddedChannels: RamiRequestManager.getModdedChannels,
-    onCloseModal() {
-      closeCreateSessionModal()
-    }
-  },
-})
-
-async function openCreateRequestModalWithContext() {
-  patchCreateRequestModal({
-    attrs: {
-      userSessionData: RamiRequestManager.getUserProfile,
-      sessionData: RamiRequestManager.getCurrentSession,
-    }
-  })
-  RamiRequestManager.refreshTimerPaused.value = true
-  await openCreateRequestModal()
-}
-const { open: openCreateRequestModal, close: closeCreateRequestModal, patchOptions: patchCreateRequestModal } = useModal({
-  component: CreateRequestModal,
-  attrs: {
-    userSessionData: RamiRequestManager.getUserProfile,
-    sessionData: RamiRequestManager.getCurrentSession,
-    onCloseModal() {
-      RamiRequestManager.refreshTimerPaused.value = false
-      closeCreateRequestModal()
-    },
-    async onRequestCreated() {
-      //await RamiRequestManager.refreshSessions()
-      await closeCreateSessionModal()
-    }
-  },
-})
+//
+// const { open: openAuthModal, close: closeAuthModal } = useModal({
+//   component: TwitchAuthModal,
+//   attrs: {
+//     userSessionData: RamiRequestManager.getUserProfile,
+//     onCloseModal() {
+//       closeAuthModal()
+//     },
+//     onLogin() {
+//       if (!RamiRequestManager.getUserSessionValid) {
+//         navigateTo('/api/v1/rrm/twitch/auth', {external: true})
+//       }
+//     },
+//     onLogout() {
+//       if (RamiRequestManager.getUserSessionValid) {
+//         RamiRequestManager.clearUserSession()
+//       }
+//     }
+//   },
+// })
+//
+// const { open: openCreateSessionModal, close: closeCreateSessionModal } = useModal({
+//   component: CreateSessionModal,
+//   attrs: {
+//     userSessionData: RamiRequestManager.getUserProfile,
+//     moddedChannels: RamiRequestManager.getModdedChannels,
+//     onCloseModal() {
+//       closeCreateSessionModal()
+//     }
+//   },
+// })
+//
+// async function openCreateRequestModalWithContext() {
+//   patchCreateRequestModal({
+//     attrs: {
+//       userSessionData: RamiRequestManager.getUserProfile,
+//       sessionData: RamiRequestManager.getCurrentSession,
+//     }
+//   })
+//   RamiRequestManager.refreshTimerPaused.value = true
+//   await openCreateRequestModal()
+// }
+// const { open: openCreateRequestModal, close: closeCreateRequestModal, patchOptions: patchCreateRequestModal } = useModal({
+//   component: CreateRequestModal,
+//   attrs: {
+//     userSessionData: RamiRequestManager.getUserProfile,
+//     sessionData: RamiRequestManager.getCurrentSession,
+//     onCloseModal() {
+//       RamiRequestManager.refreshTimerPaused.value = false
+//       closeCreateRequestModal()
+//     },
+//     async onRequestCreated() {
+//       //await RamiRequestManager.refreshSessions()
+//       await closeCreateSessionModal()
+//     }
+//   },
+// })
 
 async function onChannelSelected(selection: string) {
   if (selection === "No Stream") {
@@ -143,7 +116,7 @@ async function onChannelSelected(selection: string) {
       <toolbar-button class="text-primary font-bold" disabled>
         Rami Request Manager
       </toolbar-button>
-      <toolbar-button ref="AuthButton" @button-clicked="openAuthModal">
+      <toolbar-button ref="AuthButton" @button-clicked="modalManager.showModal('twitchAuth', TwitchAuthModal)">
         <div class="relative w-fit h-fit inline-block mr-2 ">
           <div class="bg-purple-900 rounded-full animate-ping absolute align-middle inset-0"/>
           <icon v-if="!RamiRequestManager.getUserSessionValid" name="mdi:twitch" class="size-6 align-middle"/>
@@ -154,7 +127,7 @@ async function onChannelSelected(selection: string) {
       <new-select default="None" :options="RamiRequestManager.getActiveSessionOptions" @update:model-value="async ($event) => (await RamiRequestManager.setCurrentSession(Number($event)))">
         Session:
       </new-select>
-      <toolbar-button ref="CreateSessionButton" @button-clicked="openCreateSessionModal" :disabled="!RamiRequestManager.getUserSessionValid" class="hover:bg-red-900 hover:text-red-300 bg-red-950 text-red-400">
+      <toolbar-button ref="CreateSessionButton" @button-clicked="modalManager.showModal('createSession', CreateSessionModal)" :disabled="!RamiRequestManager.getUserSessionValid" class="hover:bg-red-900 hover:text-red-300 bg-red-950 text-red-400">
         Create Session
       </toolbar-button>
       <toolbar-button ref="HostButton">
@@ -216,7 +189,7 @@ async function onChannelSelected(selection: string) {
       <control-category title="Request Queue" subtitle="You can view and rearrange the queue below. Rearranging is currently not working.">
         <control-button ref="RequestQueuePrevious" icon="material-symbols:fast-rewind-rounded" colour="Blue">Previous</control-button>
         <control-button ref="RequestQueueNext" icon="material-symbols:fast-forward-rounded" colour="Blue">Next</control-button>
-        <control-button ref="RequestQueueAdd" icon="material-symbols:add-2-rounded" colour="Green" @button-clicked="openCreateRequestModalWithContext">Add</control-button>
+<!--        <control-button ref="RequestQueueAdd" icon="material-symbols:add-2-rounded" colour="Green" @button-clicked="openCreateRequestModalWithContext">Add</control-button>-->
         <div ref="RequestQueue" class="h-40 resize-y overflow-y-scroll overflow-x-clip text-pretty min-h-20 w-full rounded-md bg-neutral-950 flex flex-col">
           <template v-if="RamiRequestManager.getRequestsByOrder && RamiRequestManager.getRequestsByOrder.length > 0">
             <request-item v-for="requestItem of RamiRequestManager.getRequestsByOrder" :request="requestItem"/>

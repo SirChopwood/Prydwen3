@@ -1,10 +1,10 @@
 <script lang="ts">
 import {defineComponent} from 'vue'
-import {ModalsContainer} from "vue-final-modal";
+import ModalContainer from "~/components/rrm/modal-container.vue";
 
 export default defineComponent({
   name: "panel",
-  components: {ModalsContainer}
+  components: {ModalContainer}
 })
 </script>
 
@@ -15,7 +15,7 @@ export default defineComponent({
     </div>
     <div class="grow min-h-2"></div>
     <page-footer name="Ramiris"/>
-    <ModalsContainer/>
+    <modal-container/>
   </div>
 </template>
 

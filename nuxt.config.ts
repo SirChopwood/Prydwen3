@@ -18,9 +18,6 @@ export default defineNuxtConfig({
     icon: {},
     fonts: {},
     tailwindcss: {},
-    css: [
-        "vue-final-modal/style.css"
-    ],
     nitro: {
         experimental: {
             openAPI: true,

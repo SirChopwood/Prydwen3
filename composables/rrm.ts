@@ -2,11 +2,13 @@ import type {UserSessionComposable} from "#auth-utils";
 import type {RRM_Session, RRM_Request} from "~/server/utils/drizzle";
 import {useUserSession} from "#build/imports";
 
-export function useSessionManager() {
-    return new RRM_Session_Manager
+export function useRequestManager() {
+    return new Rami_Request_Manager
 }
 
-class RRM_Session_Manager {
+export type RequestManager = InstanceType<typeof Rami_Request_Manager>
+
+class Rami_Request_Manager {
     private eventStream = new EventSource("/api/v1/rrm/sse")
     private userSession: UserSessionComposable | null = null
     private moddedChannels: Ref<Array<{id: number, name: string}> | null> = ref(null)
