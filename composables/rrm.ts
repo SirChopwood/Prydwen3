@@ -54,6 +54,7 @@ class Rami_Request_Manager {
             console.log(`[SSE] Connected to ${this.eventStream.url}`)
         }
         this.eventStream.onmessage = (event) => {
+            console.log("EVENT", event.data)
             if (event.data.startsWith("SESSION-")) {
                 let newSession = JSON.parse(event.data.replace("SESSION-","")) as RRM_Session
                 this.sessionList.value[newSession.id] = newSession
