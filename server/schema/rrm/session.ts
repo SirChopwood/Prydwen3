@@ -11,6 +11,7 @@ export const createSession = z.strictObject({
 export const fetchSession = z.strictObject({
     "channel": TwitchChannel.optional(),
     "force": z.boolean().optional(),
+    "sessionId": z.number().optional(),
 })
 
 export const setSession = z.strictObject({

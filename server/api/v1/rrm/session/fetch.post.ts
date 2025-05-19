@@ -9,6 +9,11 @@ export default defineEventHandler(async (event) => {
     let activeSessions: Array<RRM_Session> = []
     if (context.body.channel && !context.body.force) {
         activeSessions = await fetchSessionByChannel(context.body.channel, true)
+    } else if (context.body.sessionId) {
+        let sessionFound = await fetchSessionById(context.body.sessionId, true)
+        if (sessionFound) {
+            activeSessions.push(sessionFound)
+        }
     } else {
         const userSession = await fetchUserSession(event)
         const modChannels = await fetchModeratedChannels(Number(userSession.user!.id), userSession.user!.display_name, userSession.secure!.access_token)

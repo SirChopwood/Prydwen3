@@ -9,7 +9,7 @@ export function useRequestManager() {
 export type RequestManager = InstanceType<typeof Rami_Request_Manager>
 
 class Rami_Request_Manager {
-    private eventStream = new EventSource("/api/v1/rrm/sse")
+    private webSocket = new WebSocket("/api/v1/rrm/ws")
     private userSession: UserSessionComposable | null = null
     private moddedChannels: Ref<Array<{id: number, name: string}> | null> = ref(null)
     private sessionList: Ref<Record<number, RRM_Session>> = ref({})
@@ -50,27 +50,25 @@ class Rami_Request_Manager {
         }, 100)
         console.log("Rami Request Manager - Sessions Refresh Queued.")
 
-        this.eventStream.onopen = () => {
-            console.log(`[SSE] Connected to ${this.eventStream.url}`)
+        this.webSocket.onopen = () => {
+            console.log(`[WS] Connected to ${this.webSocket.url}`)
         }
-        this.eventStream.onmessage = (event) => {
-            console.log("EVENT", event.data)
-            if (event.data.startsWith("SESSION-")) {
-                let newSession = JSON.parse(event.data.replace("SESSION-","")) as RRM_Session
-                this.sessionList.value[newSession.id] = newSession
-            } else if (event.data.startsWith("REQUEST-")) {
+        this.webSocket.onmessage = (event) => {
+            let {type, data} = JSON.parse(event.data)
+            if (type === "Session") {
+                this.sessionList.value[data.id] = data as RRM_Session
+            } else if (type === "Requests") {
                 let newList: Record<number, RRM_Request> = {}
-                let requests = JSON.parse(event.data.replace("REQUEST-","")) as Array<RRM_Request>
-                for (let request of requests) {
+                for (let request of data as Array<RRM_Request>) {
                     newList[request.id] = request
                 }
                 this.requestList.value = newList
             }
         }
-        this.eventStream.onerror = (event) => {
-            console.log(`[SSE] Error from ${this.eventStream.url} - ${event.type}`)
+        this.webSocket.onerror = (event) => {
+            console.log(`[WSS] Error from ${this.webSocket.url} - ${event.type}`)
         }
-        console.log("Rami Request Manager - SSE Launching")
+        console.log("Rami Request Manager - WebSocket Connected")
 
         this.refreshUptime()
         setInterval(this.refreshUptime.bind(this), 1000) // Update Timer every second
@@ -187,7 +185,9 @@ class Rami_Request_Manager {
         let options: Array<{ value: string; label: string }> = []
         if (this.sessionList.value) {
             for (let session of Object.values(this.sessionList.value)) {
-                options.push({value: session.id.toString(), label: `[ ${session.id} ] - ${session.owner.name}`})
+                if (session.id && session.owner) {
+                    options.push({value: session.id.toString(), label: `[ ${session.id} ] - ${session.owner.name}`})
+                }
             }
         }
         return options

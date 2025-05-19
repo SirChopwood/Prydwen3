@@ -20,8 +20,8 @@
         "@nuxtjs/tailwindcss": "^6.8.0",
         "drizzle-orm": "^0.39.3",
         "front-matter": "^4.0.2",
-        "nuxt": "^3.17.2",
-        "nuxt-auth-utils": "^0.5.14",
+        "nuxt": "latest",
+        "nuxt-auth-utils": "latest",
         "vue": "latest",
         "vue-router": "latest"
     },
