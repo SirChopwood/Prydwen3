@@ -43,7 +43,11 @@ export default defineWebSocketHandler({
         }, 1000)
     },
     async message(peer, message) {
-        console.log(`[WS] Message Recieved`);
+        let {type, data} = message.json() as {type: string, data: any}
+        console.log(`[WS] Message Received: Type "${type}"`);
+        if (type === "Ping") {
+            peer.send({ type: "Pong", data: data})
+        }
     },
     async error(peer, error) {
         console.log(`[WS] Error`);

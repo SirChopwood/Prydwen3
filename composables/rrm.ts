@@ -55,6 +55,7 @@ class Rami_Request_Manager {
         }
         this.webSocket.onmessage = (event) => {
             let {type, data} = JSON.parse(event.data)
+            console.log(`[WS] Message Received: Type "${type}"`);
             if (type === "Session") {
                 this.sessionList.value[data.id] = data as RRM_Session
             } else if (type === "Requests") {
@@ -63,6 +64,8 @@ class Rami_Request_Manager {
                     newList[request.id] = request
                 }
                 this.requestList.value = newList
+            } else if (type === "Pong") {
+                this.updatePing(data)
             }
         }
         this.webSocket.onerror = (event) => {
@@ -296,8 +299,7 @@ class Rami_Request_Manager {
     private async heartbeatPing () {
         if (this.refreshTimerPaused.value) {return}
         let ping = Date.now()
-        let request = await $fetch("/api/v1/misc/ping", {method: "POST", body: JSON.stringify({})})
-        this.updatePing(ping, request.hello !== "world")
+        this.webSocket.send(JSON.stringify({ type: "Ping", data: ping }))
     }
 
     private updatePing (startTime: number, failed = false) {
