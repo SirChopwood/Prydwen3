@@ -1,6 +1,7 @@
 import url from "url"
 import {TwitchChannel} from "~/server/schema/rrm/twitch";
 import {z} from "zod";
+import {methods} from "netlify";
 
 // Returns a list of usernames and ids for channels the user has moderator permissions in.
 export async function fetchModeratedChannels(channelId: number, channelName: string, token: string) {
@@ -27,4 +28,46 @@ export async function fetchModeratedChannels(channelId: number, channelName: str
     } else {
         return []
     }
+}
+
+export async function fetchChannelInfo(channel: {id?: number, name?: string}) {
+    if (channel.name || channel.id) {
+        const tokenRequest = await fetch(url.format({
+            protocol: "https",
+            hostname: "id.twitch.tv",
+            pathname: "/oauth2/token",
+            query: {
+                client_id: process.env.NUXT_OAUTH_TWITCH_CLIENT_ID as string,
+                client_secret: process.env.NUXT_OAUTH_TWITCH_CLIENT_SECRET as string,
+                grant_type: 'client_credentials',
+            }
+        }), {method: "POST"})
+        if (tokenRequest.status === 200) {
+            let tokenData = await tokenRequest.json()
+            let userRequestUrl = {
+                protocol: "https",
+                hostname: "api.twitch.tv",
+                pathname: "/helix/users",
+                query: {}
+            }
+            if (channel.name) {
+                // @ts-ignore
+                userRequestUrl.query.login = channel.name
+            } else {
+                // @ts-ignore
+                userRequestUrl.query.id = String(channel.id)
+            }
+            const userRequest = await fetch(url.format(userRequestUrl), {
+                headers: {
+                    "Authorization": `Bearer ${tokenData.access_token}`,
+                    "Client-Id": process.env.NUXT_OAUTH_TWITCH_CLIENT_ID as string,
+                }
+            })
+            if (userRequest.status === 200) {
+                let data = await userRequest.json()
+                return data.data[0]
+            }
+        }
+    }
+    return null
 }

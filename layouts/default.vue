@@ -7,6 +7,9 @@ export default defineComponent({
 </script>
 
 <template>
+  <div id="Background" class="fixed top-0 bg-gradient-to-b from-neutral-950 to-neutral-800 w-screen h-screen -z-50">
+    <!-- Background stuff here -->
+  </div>
   <div class="relative min-h-screen flex flex-col text-white">
     <page-header/>
     <div id="Content" class="relative h-fit w-full">

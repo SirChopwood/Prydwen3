@@ -23,9 +23,6 @@ useSeoMeta({
 
 <template>
   <div class="font-cabin h-full">
-    <div id="Background" class="fixed top-0 bg-gradient-to-b from-neutral-950 to-neutral-800 w-screen h-screen -z-50">
-      <!-- Background stuff here -->
-    </div>
       <NuxtLayout>
           <div>
             <NuxtRouteAnnouncer/>

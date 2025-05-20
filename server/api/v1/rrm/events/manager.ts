@@ -4,6 +4,7 @@ let updateTimer: NodeJS.Timeout | null = null;
 
 export default defineWebSocketHandler({
     async upgrade(request) {
+        // @ts-ignore
         if (await fetchUserSessionSafe(request)) {
             console.log(`[WS] Socket Upgraded`)
         } else {
@@ -20,6 +21,7 @@ export default defineWebSocketHandler({
     async open(peer) {
         console.log(`[WS] Socket Opened`);
         updateTimer = setInterval(async () => {
+            // @ts-ignore
             const userSession = await fetchUserSession(peer)
             let selectedSession = await useStorage().getItem<number|null>(`${userSession.user?.id}-selectedSession`)
             if (selectedSession) {

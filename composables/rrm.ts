@@ -2,14 +2,16 @@ import type {UserSessionComposable} from "#auth-utils";
 import type {RRM_Session, RRM_Request} from "~/server/utils/drizzle";
 import {useUserSession} from "#build/imports";
 
+// REQUEST MANAGER FOR PANEL
+
 export function useRequestManager() {
-    return new Rami_Request_Manager
+    return new RRM_Request_Manager
 }
 
-export type RequestManager = InstanceType<typeof Rami_Request_Manager>
+export type RequestManager = InstanceType<typeof RRM_Request_Manager>
 
-class Rami_Request_Manager {
-    private webSocket = new WebSocket("/api/v1/rrm/ws")
+class RRM_Request_Manager {
+    private webSocket = new WebSocket("/api/v1/rrm/events/manager")
     private userSession: UserSessionComposable | null = null
     private moddedChannels: Ref<Array<{id: number, name: string}> | null> = ref(null)
     private sessionList: Ref<Record<number, RRM_Session>> = ref({})
@@ -22,7 +24,7 @@ class Rami_Request_Manager {
 
 
     constructor() {
-        console.log("Rami Request Manager 1.2 - Loading...")
+        console.log("Rami Request Manager 1.3 - Loading...")
         this.userSession = useUserSession()
         console.log(`Client is logged ${this.getUserSessionValid ? "into" : "out of"} Twitch`)
 
@@ -69,7 +71,7 @@ class Rami_Request_Manager {
             }
         }
         this.webSocket.onerror = (event) => {
-            console.log(`[WSS] Error from ${this.webSocket.url} - ${event.type}`)
+            console.log(`[WS] Error from ${this.webSocket.url} - ${event.type}`)
         }
         console.log("Rami Request Manager - WebSocket Connected")
 
@@ -309,4 +311,77 @@ class Rami_Request_Manager {
             this.pingInterval.value = `${Date.now() - startTime}ms`
         }
     }
+}
+
+// REQUEST LISTENER FOR OVERLAYS
+
+export function useRequestListener() {
+    return new RRM_Request_Listener()
+}
+
+export type RequestListener = InstanceType<typeof RRM_Request_Listener>
+
+class RRM_Request_Listener {
+    private listener = new EventSource("/api/v1/rrm/events/listener")
+    private session: Ref<RRM_Session | null> = ref(null)
+    private requests: Ref<Record<number, RRM_Request>> = ref({})
+    channel: Ref<string | null> = ref(null)
+    route = useRoute()
+
+    constructor() {
+        console.log("Rami Request Listener 1.3 - Loading...")
+    }
+
+    /**
+     * Should be run once when the onMounted event fires on owning page, allowing for any runtime setup.
+     */
+    async onMounted () {
+        console.log("Rami Request Manager - Mounted")
+
+        this.listener.onopen = () => {
+            console.log(`[SSE] Connected to ${this.listener.url}`)
+        }
+        this.listener.onmessage = (event) => {
+            let {type, data} = JSON.parse(event.data)
+            console.log(`[SSE] Message Received: Type "${type}"`);
+            if (type === "Session") {
+                this.session.value = data as RRM_Session
+            } else if (type === "Requests") {
+                let newList: Record<number, RRM_Request> = {}
+                for (let request of data as Array<RRM_Request>) {
+                    newList[request.id] = request
+                }
+                this.requests.value = newList
+            }
+        }
+        this.listener.onerror = (event) => {
+            console.log(`[SSE] Error from ${this.listener.url} - ${event.type}`)
+        }
+        console.log("Rami Request Manager - Event Listener Connected")
+
+        if (Array.isArray(this.route.params.twitchName)) {
+            this.channel.value = this.route.params.twitchName[0]
+        } else { this.channel.value = this.route.params.twitchName }
+
+        await $fetch("/api/v1/rrm/events/listener", {method: "POST", body: JSON.stringify({channelName: this.channel.value})})
+        console.log("Rami Request Manager - Event Listener Channel Set")
+
+        console.log("Rami Request Manager - Running! :3")
+    }
+
+    /**
+     * @returns {Array<RRM_Request>} The request array sorted by their order in the Session.
+     */
+    get getRequestsByOrder () {
+        let orderedRequests = [] as Array<RRM_Request>
+        if (this.session.value) {
+            for (let index of this.session.value.requests) {
+                if (this.requests.value[index]){
+                    orderedRequests.push(this.requests.value[index])
+                }
+            }
+        }
+        return orderedRequests
+    }
+
 }
