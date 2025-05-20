@@ -9,9 +9,12 @@ export default defineEventHandler(async (event) => {
     let targetChannel = await fetchChannelInfo({name: context.body.channelName})
 
     if (targetChannel) {
-        session.data.targetChannel = {name: String(targetChannel.display_name), id: Number(targetChannel.id)}
-        await session.update(session.data)
-        console.log( session.data)
+        if (session.data) {
+            session.data.targetChannel = {name: String(targetChannel.display_name), id: Number(targetChannel.id)}
+            await session.update(session.data)
+        } else {
+            await session.update({targetChannel: {name: String(targetChannel.display_name), id: Number(targetChannel.id)}})
+        }
         return `Channel Set to ${targetChannel}`
     } else {
         throw createError({statusCode: 400, statusMessage: "Unable to fetch channel."})
