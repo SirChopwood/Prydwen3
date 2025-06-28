@@ -84,6 +84,14 @@ class RRM_Request_Manager {
         console.log("Rami Request Manager - Running! :3")
     }
 
+    /**
+     * Closes the connection when unmounting to prevent duplciate listeners.
+     */
+    async onUnmounted () {
+        console.log("Rami Request Manager - Unmounting")
+        this.webSocket.close()
+        console.log("Rami Request Manager - Goodbye! :3")
+    }
 
     // USER SESSION
     /**
@@ -367,6 +375,15 @@ class RRM_Request_Listener {
         console.log("Rami Request Manager - Event Listener Channel Set")
 
         console.log("Rami Request Manager - Running! :3")
+    }
+
+    /**
+     * Closes the connection when unmounting to prevent duplciate listeners.
+     */
+    async onUnmounted () {
+        console.log("Rami Request Manager - Unmounting")
+        this.listener.close()
+        console.log("Rami Request Manager - Goodbye! :3")
     }
 
     /**

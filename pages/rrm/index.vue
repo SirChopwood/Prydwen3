@@ -42,6 +42,9 @@ onMounted(async () => {
     await modalManager.showModal("hostName", HostNameModal)
   }
 })
+onUnmounted(async () => {
+  await RamiRequestManager.onUnmounted()
+})
 //
 // const { open: openAuthModal, close: closeAuthModal } = useModal({
 //   component: TwitchAuthModal,
