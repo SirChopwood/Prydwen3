@@ -22,6 +22,9 @@ let RequestListener = useRequestListener()
 onMounted(async () => {
   await RequestListener.onMounted()
 })
+onUnmounted(async () => {
+  await RequestListener.onUnmounted()
+})
 let songList: ComputedRef<Array<Record<string, any>>> = computed(() => {
   return RequestListener.getRequestsByOrder || []
 })
@@ -37,21 +40,15 @@ setInterval(() => {currentScreenDisplay.value += 1}, 10000)
 </script>
 
 <template>
-<!--  <h1>RRM Overlay</h1>-->
-<!--  <br>-->
-<!--  TwitchName: {{RequestListener.channel}}-->
-<!--  <br>-->
-<!--  Requests:-->
-<!--  <div ref="RequestQueue" class="h-40 resize-y overflow-y-scroll overflow-x-clip text-pretty min-h-20 w-full rounded-md bg-neutral-950 flex flex-col">-->
-<!--    <template v-if="RequestListener.getRequestsByOrder && RequestListener.getRequestsByOrder.length > 0">-->
-<!--      <request-item v-for="requestItem of RequestListener.getRequestsByOrder" :request="requestItem"/>-->
-<!--    </template>-->
-<!--  </div>-->
+  <div class="fixed bottom-0 -left-4 w-96 h-fit">
+    <div class="relative">
+      <nuxt-img src="/images/rrm/overlays/cassette/PlayerOverlay.png" class="absolute w-full z-20"></nuxt-img>
+      <div v-if="songList.length > 0" class="absolute size-28 left-16 top-10 -ml-1 -mt-1 z-10 overflow-clip rounded-full ">
+        <img v-if="Object.keys(songList[0].metadata).includes('Thumbnail')" :src="songList[0].metadata.Thumbnail" class="record"/>
+      </div>
 
-  <div class="fixed bottom-0 left-0 w-1/5 h-fit">
-    <div>
-      <nuxt-img src="/images/rrm/overlays/cassette/Player.png" class=""></nuxt-img>
-      <div v-if="songList.length > 0" class="right-2 bottom-10 absolute flex-col w-44 h-10 pr-1 pt-1 text-green-400 inconsolata leading-3 text-lg line text-nowrap">
+      <nuxt-img src="/images/rrm/overlays/cassette/Player.png" class="w-full z-0"></nuxt-img>
+      <div v-if="songList.length > 0" class="right-2 bottom-10 absolute flex-col w-44 h-10 pr-1 pt-1 text-green-400 inconsolata leading-3 text-lg line text-nowrap z-10">
         <div class="overflow-hidden flex flex-row h-8 ticker-tape-container">
           <div class="ticker-tape">{{songList[0].text}}</div>
           <div class="ticker-tape" aria-hidden="true">{{songList[0].text}}</div>
@@ -73,8 +70,18 @@ setInterval(() => {currentScreenDisplay.value += 1}, 10000)
         </div>
       </div>
 
+      <div class="absolute bottom-4 left-14 w-36 h-12 -mb-1 -ml-2 pl-1 pt-2 flex flex-row justify-evenly">
+        <div class="size-8">
+          <nuxt-img src="/images/rrm/overlays/cassette/PlayerButton1.png" class="object-fill opacity-70"/>
+        </div>
+        <div class="size-8">
+          <nuxt-img src="/images/rrm/overlays/cassette/PlayerButton2.png" class="object-fill opacity-70"/>
+        </div>
+        <div class="size-8">
+          <nuxt-img src="/images/rrm/overlays/cassette/PlayerButton3.png" class="object-fill opacity-70"/>
+        </div>
+      </div>
     </div>
-
   </div>
 </template>
 
@@ -109,7 +116,7 @@ setInterval(() => {currentScreenDisplay.value += 1}, 10000)
   --play: running;
   display: flex;
   gap: 1rem;
-  padding-right: 1rem;
+  padding-right: 2rem;
   flex: 0 0 auto;
   align-items: center;
   animation: marquee var(--duration) linear var(--delay) var(--iteration-count);
@@ -129,4 +136,20 @@ setInterval(() => {currentScreenDisplay.value += 1}, 10000)
     }
   }
 }
+
+.record {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+  animation: record-spin 5s linear 0s infinite;
+  @keyframes record-spin {
+    0% {
+      transform: rotate(0deg) scale(130%);
+    }
+    100% {
+      transform: rotate(360deg) scale(130%);
+    }
+  }
+}
+
 </style>
