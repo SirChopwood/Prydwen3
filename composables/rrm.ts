@@ -12,7 +12,8 @@ export function useRequestManager() {
 export type RequestManager = InstanceType<typeof RRM_Request_Manager>
 
 class RRM_Request_Manager {
-    private webSocket = new WebSocket("/api/v1/rrm/events/manager")
+    private webSocket: WebSocket | null = null
+    private webSocketRefreshTimer: ReturnType<typeof setTimeout> | null = null
     private userSession: UserSessionComposable | null = null
     private moddedChannels: Ref<Array<{id: number, name: string}> | null> = ref(null)
     private sessionList: Ref<Record<number, RRM_Session>> = ref({})
@@ -53,28 +54,9 @@ class RRM_Request_Manager {
         }, 100)
         console.log("Rami Request Manager - Sessions Refresh Queued.")
 
-        this.webSocket.onopen = () => {
-            console.log(`[WS] Connected to ${this.webSocket.url}`)
+        if (this.reloadWebSocket()) {
+            console.log("Rami Request Manager - WebSocket Connected")
         }
-        this.webSocket.onmessage = (event) => {
-            let {type, data} = JSON.parse(event.data)
-            console.log(`[WS] Message Received: Type "${type}"`);
-            if (type === "Session") {
-                this.sessionList.value[data.id] = data as RRM_Session
-            } else if (type === "Requests") {
-                let newList: Record<number, RRM_Request> = {}
-                for (let request of data as Array<RRM_Request>) {
-                    newList[request.id] = request
-                }
-                this.requestList.value = newList
-            } else if (type === "Pong") {
-                this.updatePing(data)
-            }
-        }
-        this.webSocket.onerror = (event) => {
-            console.log(`[WS] Error from ${this.webSocket.url} - ${event.type}`)
-        }
-        console.log("Rami Request Manager - WebSocket Connected")
 
         this.refreshUptime()
         setInterval(this.refreshUptime.bind(this), 1000) // Update Timer every second
@@ -90,10 +72,58 @@ class RRM_Request_Manager {
      */
     async onUnmounted () {
         console.log("Rami Request Manager - Unmounting")
-        this.webSocket.close()
+        if (this.webSocketRefreshTimer) {
+            clearTimeout(this.webSocketRefreshTimer)
+        }
+        if (this.webSocket) {
+            this.webSocket.close()
+        }
         console.log("Rami Request Manager - Goodbye! :3")
     }
 
+    /**
+     * Creates a new WebSocket, closing the active one if needed and setting the auto-refresh.
+     */
+    reloadWebSocket () {
+        if (this.webSocket) {
+            this.webSocket.close()
+            console.log(`[SSE] Connection closed: ${this.webSocket.url}`)
+        }
+
+        this.webSocket = new WebSocket("/api/v1/rrm/events/manager")
+
+        if (this.webSocket === null) {
+            console.log("Rami Request Manager - Failed to connect to WebSocket")
+            return false
+        } else {
+            this.webSocket.onopen = () => {
+                console.log(`[WS] Connected to ${this.webSocket!.url}`)
+            }
+
+            this.webSocket.onmessage = (event) => {
+                let {type, data} = JSON.parse(event.data)
+                console.log(`[WS] Message Received: Type "${type}"`);
+                if (type === "Session") {
+                    this.sessionList.value[data.id] = data as RRM_Session
+                } else if (type === "Requests") {
+                    let newList: Record<number, RRM_Request> = {}
+                    for (let request of data as Array<RRM_Request>) {
+                        newList[request.id] = request
+                    }
+                    this.requestList.value = newList
+                } else if (type === "Pong") {
+                    this.updatePing(data)
+                }
+            }
+
+            this.webSocket.onerror = (event) => {
+                console.log(`[WS] Error from ${this.webSocket!.url} - ${event.type}`)
+            }
+
+            this.webSocketRefreshTimer = setTimeout(this.reloadWebSocket.bind(this), 1000*60*5)
+            return true
+        }
+    }
     // USER SESSION
     /**
      * Check if the current session has a valid login.
@@ -309,8 +339,10 @@ class RRM_Request_Manager {
 
     private async heartbeatPing () {
         if (this.refreshTimerPaused.value) {return}
-        let ping = Date.now()
-        this.webSocket.send(JSON.stringify({ type: "Ping", data: ping }))
+        if (this.webSocket) {
+            let ping = Date.now()
+            this.webSocket.send(JSON.stringify({ type: "Ping", data: ping }))
+        }
     }
 
     private updatePing (startTime: number, failed = false) {
@@ -346,32 +378,34 @@ class RRM_Request_Listener {
      * Should be run once when the onMounted event fires on owning page, allowing for any runtime setup.
      */
     async onMounted () {
-        console.log("Rami Request Manager - Mounted")
+        console.log("Rami Request Listener - Mounted")
 
         if (Array.isArray(this.route.params.twitchName)) {
             this.channel.value = this.route.params.twitchName[0]
         } else { this.channel.value = this.route.params.twitchName }
         await $fetch("/api/v1/rrm/events/listener", {method: "POST", body: JSON.stringify({channelName: this.channel.value})})
-        console.log("Rami Request Manager - Event Listener Channel Set")
+        console.log("Rami Request Listener - Event Listener Channel Set")
 
         if (this.reloadListener()) {
-            console.log("Rami Request Manager - Event Listener Connected")
+            console.log("Rami Request Listener - Event Listener Connected")
         }
 
-        console.log("Rami Request Manager - Running! :3")
+        console.log("Rami Request Listener - Running! :3")
     }
 
     /**
      * Closes the connection when unmounting to prevent duplciate listeners.
      */
     async onUnmounted () {
-        console.log("Rami Request Manager - Unmounting")
+        console.log("Rami Request Listener - Unmounting")
         if (this.listenerRefreshTimer) {
             clearTimeout(this.listenerRefreshTimer)
         }
-        this.listener!.close()
-        console.log(`[SSE] Connection closed: ${this.listener!.url}`)
-        console.log("Rami Request Manager - Goodbye! :3")
+        if (this.listener) {
+            this.listener!.close()
+            console.log(`[SSE] Connection closed: ${this.listener!.url}`)
+        }
+        console.log("Rami Request Listener - Goodbye! :3")
     }
 
     /**
