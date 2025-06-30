@@ -82,11 +82,12 @@ export default defineWebSocketHandler({
         let {type, data} = message.json() as {type: string, data: any}
         console.log(`[WS] Message Received: Type "${type}"`);
         if (type === "Target") {
-            console.log(data)
+            console.log(JSON.stringify(data))
             let channelInfo = await fetchChannelInfo({name: data.channelName})
-            console.log(channelInfo)
+            console.log(JSON.stringify(channelInfo))
             if (channelInfo) {
                 targetChannel = {name : channelInfo.display_name, id: channelInfo.id}
+                console.log(`Channel set to: ${targetChannel}`)
             }
         }
     },
