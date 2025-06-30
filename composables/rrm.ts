@@ -384,11 +384,9 @@ class RRM_Request_Listener {
         if (Array.isArray(this.route.params.twitchName)) {
             this.channel.value = this.route.params.twitchName[0]
         } else { this.channel.value = this.route.params.twitchName }
-        await $fetch("/api/v1/rrm/events/listener", {method: "POST", body: JSON.stringify({channelName: this.channel.value})})
-        console.log("Rami Request Listener - Event Listener Channel Set")
 
         if (this.reloadListener()) {
-            console.log("Rami Request Listener - Event Listener Connected")
+            console.log("Rami Request Listener - Event Listener Connecting...")
         }
 
         console.log("Rami Request Listener - Running! :3")
@@ -404,7 +402,6 @@ class RRM_Request_Listener {
         }
         if (this.listener) {
             this.listener!.close()
-            console.log(`[WS] Connection closed: ${this.listener!.url}`)
         }
         console.log("Rami Request Listener - Goodbye! :3")
     }
@@ -415,7 +412,6 @@ class RRM_Request_Listener {
     reloadListener () {
         if (this.listener) {
             this.listener.close()
-            console.log(`[WS] Connection closed: ${this.listener!.url}`)
         }
 
         this.listener = new WebSocket("/api/v1/rrm/events/listener")
@@ -424,12 +420,13 @@ class RRM_Request_Listener {
             console.log("Rami Request Manager - Failed to connect to Event Listener")
             return false
         } else {
-            this.listener.onopen = () => {
+            this.listener.addEventListener("open", (event) => {
                 console.log(`[WS] Connected to ${this.listener!.url}`)
                 this.listener?.send(JSON.stringify({type: "Target", data: {channelName: this.channel.value}}))
-            }
+                console.log("Rami Request Listener - Event Listener Channel Set")
+            })
 
-            this.listener.onmessage = (event) => {
+            this.listener.addEventListener("message", (event) => {
                 let {type, data} = JSON.parse(event.data)
                 console.debug(`[WS] Message Received: Type "${type}"`);
                 if (type === "Session") {
@@ -441,11 +438,15 @@ class RRM_Request_Listener {
                     }
                     this.requests.value = newList
                 }
-            }
+            })
 
-            this.listener.onerror = (event) => {
+            this.listener.addEventListener("close", (event) => {
+                console.log(`[WS] Connection closed: ${this.listener!.url}`)
+            })
+
+                this.listener.addEventListener("error", (event) => {
                 console.log(`[WS] Error from ${this.listener!.url} - ${event.type}`)
-            }
+            })
 
             this.listenerRefreshTimer = setTimeout(this.reloadListener.bind(this), 1000*60*5)
             return true
