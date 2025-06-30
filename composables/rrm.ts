@@ -1,6 +1,7 @@
 import type {UserSessionComposable} from "#auth-utils";
 import type {RRM_Session, RRM_Request} from "~/server/utils/drizzle";
 import {useUserSession} from "#build/imports";
+import type {Timeout} from "unenv/node/internal/timers/timeout";
 
 // REQUEST MANAGER FOR PANEL
 
@@ -330,7 +331,8 @@ export function useRequestListener() {
 export type RequestListener = InstanceType<typeof RRM_Request_Listener>
 
 class RRM_Request_Listener {
-    private listener = new EventSource("/api/v1/rrm/events/listener")
+    private listener: EventSource | null = null
+    private listenerRefreshTimer: ReturnType<typeof setTimeout> | null = null
     private session: Ref<RRM_Session | null> = ref(null)
     private requests: Ref<Record<number, RRM_Request>> = ref({})
     channel: Ref<string | null> = ref(null)
@@ -346,33 +348,15 @@ class RRM_Request_Listener {
     async onMounted () {
         console.log("Rami Request Manager - Mounted")
 
-        this.listener.onopen = () => {
-            console.log(`[SSE] Connected to ${this.listener.url}`)
-        }
-        this.listener.onmessage = (event) => {
-            let {type, data} = JSON.parse(event.data)
-            console.log(`[SSE] Message Received: Type "${type}"`);
-            if (type === "Session") {
-                this.session.value = data as RRM_Session
-            } else if (type === "Requests") {
-                let newList: Record<number, RRM_Request> = {}
-                for (let request of data as Array<RRM_Request>) {
-                    newList[request.id] = request
-                }
-                this.requests.value = newList
-            }
-        }
-        this.listener.onerror = (event) => {
-            console.log(`[SSE] Error from ${this.listener.url} - ${event.type}`)
-        }
-        console.log("Rami Request Manager - Event Listener Connected")
-
         if (Array.isArray(this.route.params.twitchName)) {
             this.channel.value = this.route.params.twitchName[0]
         } else { this.channel.value = this.route.params.twitchName }
-
         await $fetch("/api/v1/rrm/events/listener", {method: "POST", body: JSON.stringify({channelName: this.channel.value})})
         console.log("Rami Request Manager - Event Listener Channel Set")
+
+        if (this.reloadListener()) {
+            console.log("Rami Request Manager - Event Listener Connected")
+        }
 
         console.log("Rami Request Manager - Running! :3")
     }
@@ -382,8 +366,54 @@ class RRM_Request_Listener {
      */
     async onUnmounted () {
         console.log("Rami Request Manager - Unmounting")
-        this.listener.close()
+        if (this.listenerRefreshTimer) {
+            clearTimeout(this.listenerRefreshTimer)
+        }
+        this.listener!.close()
+        console.log(`[SSE] Connection closed: ${this.listener!.url}`)
         console.log("Rami Request Manager - Goodbye! :3")
+    }
+
+    /**
+     * Creates a new SSE Listener, closing the active one if needed and setting the auto-refresh.
+     */
+    reloadListener () {
+        if (this.listener) {
+            this.listener.close()
+            console.log(`[SSE] Connection closed: ${this.listener!.url}`)
+        }
+
+        this.listener = new EventSource("/api/v1/rrm/events/listener")
+
+        if (this.listener === null) {
+            console.log("Rami Request Manager - Failed to connect to Event Listener")
+            return false
+        } else {
+            this.listener.onopen = () => {
+                console.log(`[SSE] Connected to ${this.listener!.url}`)
+            }
+
+            this.listener.onmessage = (event) => {
+                let {type, data} = JSON.parse(event.data)
+                console.debug(`[SSE] Message Received: Type "${type}"`);
+                if (type === "Session") {
+                    this.session.value = data as RRM_Session
+                } else if (type === "Requests") {
+                    let newList: Record<number, RRM_Request> = {}
+                    for (let request of data as Array<RRM_Request>) {
+                        newList[request.id] = request
+                    }
+                    this.requests.value = newList
+                }
+            }
+
+            this.listener.onerror = (event) => {
+                console.log(`[SSE] Error from ${this.listener!.url} - ${event.type}`)
+            }
+
+            this.listenerRefreshTimer = setTimeout(this.reloadListener.bind(this), 1000*60*5)
+            return true
+        }
     }
 
     /**
