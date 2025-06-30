@@ -124,6 +124,7 @@ class RRM_Request_Manager {
             return true
         }
     }
+
     // USER SESSION
     /**
      * Check if the current session has a valid login.
@@ -363,7 +364,7 @@ export function useRequestListener() {
 export type RequestListener = InstanceType<typeof RRM_Request_Listener>
 
 class RRM_Request_Listener {
-    private listener: EventSource | null = null
+    private listener: WebSocket | null = null
     private listenerRefreshTimer: ReturnType<typeof setTimeout> | null = null
     private session: Ref<RRM_Session | null> = ref(null)
     private requests: Ref<Record<number, RRM_Request>> = ref({})
@@ -403,7 +404,7 @@ class RRM_Request_Listener {
         }
         if (this.listener) {
             this.listener!.close()
-            console.log(`[SSE] Connection closed: ${this.listener!.url}`)
+            console.log(`[WS] Connection closed: ${this.listener!.url}`)
         }
         console.log("Rami Request Listener - Goodbye! :3")
     }
@@ -414,22 +415,23 @@ class RRM_Request_Listener {
     reloadListener () {
         if (this.listener) {
             this.listener.close()
-            console.log(`[SSE] Connection closed: ${this.listener!.url}`)
+            console.log(`[WS] Connection closed: ${this.listener!.url}`)
         }
 
-        this.listener = new EventSource("/api/v1/rrm/events/listener")
+        this.listener = new WebSocket("/api/v1/rrm/events/listener")
 
         if (this.listener === null) {
             console.log("Rami Request Manager - Failed to connect to Event Listener")
             return false
         } else {
             this.listener.onopen = () => {
-                console.log(`[SSE] Connected to ${this.listener!.url}`)
+                console.log(`[WS] Connected to ${this.listener!.url}`)
+                this.listener?.send(JSON.stringify({type: "Target", data: {channelName: this.channel.value}}))
             }
 
             this.listener.onmessage = (event) => {
                 let {type, data} = JSON.parse(event.data)
-                console.debug(`[SSE] Message Received: Type "${type}"`);
+                console.debug(`[WS] Message Received: Type "${type}"`);
                 if (type === "Session") {
                     this.session.value = data as RRM_Session
                 } else if (type === "Requests") {
@@ -442,7 +444,7 @@ class RRM_Request_Listener {
             }
 
             this.listener.onerror = (event) => {
-                console.log(`[SSE] Error from ${this.listener!.url} - ${event.type}`)
+                console.log(`[WS] Error from ${this.listener!.url} - ${event.type}`)
             }
 
             this.listenerRefreshTimer = setTimeout(this.reloadListener.bind(this), 1000*60*5)

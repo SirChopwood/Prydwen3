@@ -36,6 +36,6 @@ export default defineNuxtConfig({
           logs: true,
         },
       },
-        workers: true
+      workers: true
     },
 })
