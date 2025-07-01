@@ -364,8 +364,8 @@ export function useRequestListener() {
 export type RequestListener = InstanceType<typeof RRM_Request_Listener>
 
 class RRM_Request_Listener {
-    private listener: WebSocket | null = null
-    private listenerRefreshTimer: ReturnType<typeof setTimeout> | null = null
+    private webSocket: WebSocket | null = null
+    private webSocketRefreshTimer: ReturnType<typeof setTimeout> | null = null
     private session: Ref<RRM_Session | null> = ref(null)
     private requests: Ref<Record<number, RRM_Request>> = ref({})
     channel: Ref<string | null> = ref(null)
@@ -383,7 +383,9 @@ class RRM_Request_Listener {
 
         if (Array.isArray(this.route.params.twitchName)) {
             this.channel.value = this.route.params.twitchName[0]
-        } else { this.channel.value = this.route.params.twitchName }
+        } else {
+            this.channel.value = this.route.params.twitchName
+        }
 
         if (this.reloadListener()) {
             console.log("Rami Request Listener - Event Listener Connecting...")
@@ -397,11 +399,11 @@ class RRM_Request_Listener {
      */
     async onUnmounted () {
         console.log("Rami Request Listener - Unmounting")
-        if (this.listenerRefreshTimer) {
-            clearTimeout(this.listenerRefreshTimer)
+        if (this.webSocketRefreshTimer) {
+            clearTimeout(this.webSocketRefreshTimer)
         }
-        if (this.listener) {
-            this.listener!.close()
+        if (this.webSocket) {
+            this.webSocket!.close()
         }
         console.log("Rami Request Listener - Goodbye! :3")
     }
@@ -410,25 +412,26 @@ class RRM_Request_Listener {
      * Creates a new SSE Listener, closing the active one if needed and setting the auto-refresh.
      */
     reloadListener () {
-        if (this.listener) {
-            this.listener.close()
+        if (this.webSocket) {
+            this.webSocket.close()
         }
-
-        this.listener = new WebSocket("/api/v1/rrm/events/listener")
-
-        if (this.listener === null) {
-            console.log("Rami Request Manager - Failed to connect to Event Listener")
-            return false
-        } else {
-            this.listener.addEventListener("open", (event) => {
-                console.log(`[WS] Connected to ${this.listener!.url}`)
-                this.listener?.send(JSON.stringify({type: "Target", data: {channelName: this.channel.value}}))
-                console.log("Rami Request Listener - Event Listener Channel Set")
+        this.webSocket = new WebSocket("/api/v1/rrm/events/listener")
+        if (this.webSocket) {
+            this.webSocket.addEventListener("open", (event) => {
+                console.log(`[WebSocket] Connected to ${this.webSocket!.url}`)
+                this.webSocket!.send(JSON.stringify({
+                    type: "Target",
+                    data: {
+                        channelName: this.channel.value
+                    }
+                }))
+                console.log("[WebSocket] Event Listener Channel Set")
             })
 
-            this.listener.addEventListener("message", (event) => {
+            this.webSocket.addEventListener("message", (event) => {
                 let {type, data} = JSON.parse(event.data)
-                console.debug(`[WS] Message Received: Type "${type}"`);
+                console.debug(`[WebSocket] Message Received: Type "${type}"`);
+
                 if (type === "Session") {
                     this.session.value = data as RRM_Session
                 } else if (type === "Requests") {
@@ -440,16 +443,19 @@ class RRM_Request_Listener {
                 }
             })
 
-            this.listener.addEventListener("close", (event) => {
-                console.log(`[WS] Connection closed: ${this.listener!.url}`)
+            this.webSocket.addEventListener("close", (event) => {
+                console.log(`[WebSocket] Connection closed: ${event.reason}`)
             })
 
-                this.listener.addEventListener("error", (event) => {
-                console.log(`[WS] Error from ${this.listener!.url} - ${event.type}`)
+            this.webSocket.addEventListener("error", (event) => {
+                console.log(`[WebSocket] Error: ${event}`)
             })
 
-            this.listenerRefreshTimer = setTimeout(this.reloadListener.bind(this), 1000*60*5)
+            this.webSocketRefreshTimer = setTimeout(this.reloadListener.bind(this), 1000*60*5)
             return true
+        } else {
+            console.log("[WebSocket] Failed to connect!")
+            return false
         }
     }
 

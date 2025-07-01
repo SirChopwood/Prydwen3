@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {useRequestListener} from "~/composables/rrm";
-import RequestItem from "~/components/rrm/request-item.vue";
 
 definePageMeta({
   title: "Rami Request Manager",
