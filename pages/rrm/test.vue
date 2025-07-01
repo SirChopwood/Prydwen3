@@ -2,13 +2,14 @@
 console.log("Loading WS")
 
 let messages: Ref<Array<String>> = ref([])
+let ws: WebSocket | null = null
 
 onMounted(async () => {
-  let ws = new WebSocket("/api/v1/rrm/events/websocket")
+  ws = new WebSocket("/api/v1/rrm/events/websocket")
   ws.addEventListener("open", async (event) => {
     console.log("WS Ready")
     messages.value.push(`WS Ready`)
-    ws.send("first")
+    ws!.send("first")
   })
   ws.addEventListener("message", async (event) => {
     console.log(event.data)
@@ -22,6 +23,10 @@ onMounted(async () => {
     console.log(`WS Error: ${event}`)
     messages.value.push(`WS Error: ${event}`)
   })
+})
+
+onUnmounted(() => {
+  ws!.close()
 })
 </script>
 
