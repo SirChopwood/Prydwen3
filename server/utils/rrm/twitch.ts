@@ -30,16 +30,15 @@ export async function fetchModeratedChannels(channelId: number, channelName: str
     }
 }
 
-export async function fetchChannelInfo(channel: {id?: number, name?: string}) {
+export async function fetchChannelInfo(channel: {id?: number, name?: string}, clientId = "", clientSecret = "") {
     if (channel.name || channel.id) {
-        console.log(`Client ID: ${process.env.NUXT_OAUTH_TWITCH_CLIENT_ID}, client secret: ${process.env.NUXT_OAUTH_TWITCH_CLIENT_SECRET}`)
         const tokenRequest = await fetch(url.format({
             protocol: "https",
             hostname: "id.twitch.tv",
             pathname: "/oauth2/token",
             query: {
-                client_id: process.env.NUXT_OAUTH_TWITCH_CLIENT_ID as string,
-                client_secret: process.env.NUXT_OAUTH_TWITCH_CLIENT_SECRET as string,
+                client_id: clientId ? clientId : process.env.NUXT_OAUTH_TWITCH_CLIENT_ID as string,
+                client_secret: clientSecret ? clientSecret : process.env.NUXT_OAUTH_TWITCH_CLIENT_SECRET as string,
                 grant_type: 'client_credentials',
             }
         }), {method: "POST"})
@@ -61,7 +60,7 @@ export async function fetchChannelInfo(channel: {id?: number, name?: string}) {
             const userRequest = await fetch(url.format(userRequestUrl), {
                 headers: {
                     "Authorization": `Bearer ${tokenData.access_token}`,
-                    "Client-Id": process.env.NUXT_OAUTH_TWITCH_CLIENT_ID as string,
+                    "Client-Id": clientId ? clientId : process.env.NUXT_OAUTH_TWITCH_CLIENT_ID as string,
                 }
             })
             if (userRequest.status === 200) {

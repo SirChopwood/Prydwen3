@@ -3,6 +3,8 @@ import {Peer} from "crossws";
 
 let updateTimer: NodeJS.Timeout | null = null;
 let targetChannel: {name: string, id: number} | null = null
+const clientId = process.env.NUXT_OAUTH_TWITCH_CLIENT_ID as string
+const clientSecret = process.env.NUXT_OAUTH_TWITCH_CLIENT_SECRET as string
 
 export default defineWebSocketHandler({
     async upgrade(request) {
@@ -16,7 +18,7 @@ export default defineWebSocketHandler({
         console.log(`[WebSocket] Message Received: Type "${type}"`);
         if (type === "Target") {
             console.log(JSON.stringify(data))
-            let channelInfo = await fetchChannelInfo({name: data.channelName})
+            let channelInfo = await fetchChannelInfo({name: data.channelName}, clientId, clientSecret)
             console.log(JSON.stringify(channelInfo))
             if (channelInfo) {
                 targetChannel = {name : channelInfo.display_name, id: channelInfo.id}
