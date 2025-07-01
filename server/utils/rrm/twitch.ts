@@ -67,10 +67,10 @@ export async function fetchChannelInfo(channel: {id?: number, name?: string}) {
                 let data = await userRequest.json()
                 return data.data[0]
             } else {
-                console.log(userRequest.text())
+                console.log(await userRequest.text())
             }
         } else {
-            console.log(tokenRequest.text())
+            console.log(await tokenRequest.text())
         }
     }
     return null

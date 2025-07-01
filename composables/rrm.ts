@@ -386,6 +386,7 @@ class RRM_Request_Listener {
         } else {
             this.channel.value = this.route.params.twitchName
         }
+        console.log(`Rami Request Listener - Searching for Channel: ${this.channel.value}`)
 
         if (this.reloadListener()) {
             console.log("Rami Request Listener - Event Listener Connecting...")
