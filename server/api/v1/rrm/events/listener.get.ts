@@ -3,8 +3,6 @@ import {Peer} from "crossws";
 
 let updateTimer: NodeJS.Timeout | null = null;
 let targetChannel: {name: string, id: number} | null = null
-const clientId = process.env.NUXT_OAUTH_TWITCH_CLIENT_ID
-const clientSecret = process.env.NUXT_OAUTH_TWITCH_CLIENT_SECRET
 
 export default defineWebSocketHandler({
     async upgrade(request) {
@@ -12,18 +10,26 @@ export default defineWebSocketHandler({
     },
     async open(peer) {
         console.log(`[WebSocket] Socket Opened`);
-        console.log(`OPEN Client ID: ${clientId ? clientId : process.env.NUXT_OAUTH_TWITCH_CLIENT_ID}, Client Secret: ${clientSecret ? clientSecret : process.env.NUXT_OAUTH_TWITCH_CLIENT_SECRET}`)
+        peer.subscribe(`${peer.id}`)
     },
     async message(peer, message) {
         let {type, data} = message.json() as {type: string, data: any}
         console.log(`[WebSocket] Message Received: Type "${type}"`);
-        console.log(`MESSAGE Client ID: ${clientId ? clientId : process.env.NUXT_OAUTH_TWITCH_CLIENT_ID}, Client Secret: ${clientSecret ? clientSecret : process.env.NUXT_OAUTH_TWITCH_CLIENT_SECRET}`)
         if (type === "Target") {
             console.log(JSON.stringify(data))
-            let channelInfo = await fetchChannelInfo({name: data.channelName}, clientId, clientSecret)
+            let channelInfo = await fetchChannelInfo(
+                {
+                    name: data.channelName
+                },
+                process.env.NUXT_OAUTH_TWITCH_CLIENT_ID,
+                process.env.NUXT_OAUTH_TWITCH_CLIENT_SECRET
+            )
             console.log(JSON.stringify(channelInfo))
             if (channelInfo) {
-                targetChannel = {name : channelInfo.display_name, id: channelInfo.id}
+                targetChannel = {
+                    name : channelInfo.display_name,
+                    id: channelInfo.id
+                }
                 console.log(`Channel set to: ${targetChannel}`)
 
                 if (updateTimer) {
@@ -38,6 +44,7 @@ export default defineWebSocketHandler({
     },
     async close(peer) {
         console.log(`[WebSocket] Socket Closed: ${peer.remoteAddress}`)
+        peer.unsubscribe(`${peer.id}`)
         clearInterval(updateTimer!)
     }
 })
@@ -54,10 +61,10 @@ async function sendUpdate(peer: Peer) {
             })
         })
         if (rrm_session.length > 0) {
-            peer.send({ type: "Session",
+            peer.publish(`${peer.id}`, { type: "Session",
                 data: rrm_session[0]
             })
-            peer.send({ type: "Requests",
+            peer.publish(`${peer.id}`,{ type: "Requests",
                 data: await $fetch("/api/v1/rrm/request/fetch", {
                     method: "POST",
                     body: JSON.stringify({
