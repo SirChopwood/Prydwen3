@@ -36,5 +36,6 @@ export const editScore = z.strictObject({
 })
 
 export const fetchTeam = z.strictObject({
-    "id": z.number().min(0),
+    "id": z.number().min(0).optional(),
+    "name": z.string().optional(),
 })
