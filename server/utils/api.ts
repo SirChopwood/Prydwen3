@@ -4,7 +4,7 @@ import {getUserSession} from "#imports";
 import type {UserSession} from "#auth-utils";
 
 // Ensures the body of the request meets the given schema, optionally enforcing Twitch OAuth too. If it fails to validate, a 400 response will be sent with the reasoning.
-export async function validateRequest<schema extends z.ZodTypeAny> (event: H3Event<Request>, bodySchema: schema, twitchAuth: boolean) {
+export async function validateRequest<schema extends z.ZodTypeAny> (event: H3Event<Request>, bodySchema: schema, twitchAuth: boolean = false) {
     let context = {
         body: {} as z.infer<schema>,
         userSession: {} as UserSession

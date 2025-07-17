@@ -21,10 +21,10 @@
         "better-sqlite3": "^11.10.0",
         "drizzle-orm": "^0.39.3",
         "front-matter": "^4.0.2",
-        "nuxt": "latest",
-        "nuxt-auth-utils": "latest",
-        "vue": "latest",
-        "vue-router": "latest"
+        "nuxt": "3.17.7",
+        "nuxt-auth-utils": "^0.5.20",
+        "vue": "^3.5.17",
+        "vue-router": "^4.5.1"
     },
     "devDependencies": {
         "@iconify-json/file-icons": "^1.2.1",

@@ -59,3 +59,51 @@ export const RRM_Request = sqliteTable("RRM_Request", {
     metadata: text("metadata", {mode: "json"})
         .notNull(),
 });
+
+export const ModCorp_Team = sqliteTable("ModCorp_Team", {
+    id: integer("id")
+        .primaryKey({ autoIncrement: true }),
+
+    name: text("name")
+        .notNull(),
+
+    description: text("description")
+        .notNull()
+        .default(""),
+
+    colour: text("colour")
+        .notNull()
+        .default("#ffbb00"),
+
+    logo_url: text("logo_url")
+        .notNull()
+        .default(""),
+
+    score: integer()
+        .notNull()
+        .default(0),
+
+    discord: text("discord", {mode: "json"})
+        .$type<{role: String, channel: String, server: String}>()
+        .notNull()
+        .default({'role': '', 'channel': '', 'server': ''}),
+})
+
+export const ModCorp_Logs = sqliteTable("ModCorp_Logs", {
+    id: integer("id")
+        .primaryKey({ autoIncrement: true }),
+
+    user_name: text("user_name")
+        .notNull(),
+
+    user_id: text("user_id")
+        .notNull(),
+
+    action: text("action")
+        .notNull(),
+
+    reason: text("reason"),
+
+    timestamp: text("timestamp")
+        .notNull(),
+})
