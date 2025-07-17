@@ -34,3 +34,7 @@ export const editScore = z.strictObject({
     "score": z.number(),
     "reason": z.string(),
 })
+
+export const fetchTeam = z.strictObject({
+    "id": z.number().min(0),
+})
