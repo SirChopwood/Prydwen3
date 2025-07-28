@@ -10,11 +10,15 @@ export const cardRarity: Record<number, { name: string, colour: string, chances:
     6: {name: "Unique", colour: "#cc1919", chances: 1},
 }
 
-export type card = {
+export type Card = {
     "name": string,
     "description": string,
     "file": string,
     "rarity": number
+}
+
+export interface DBCard extends Card {
+    id: number
 }
 
 // CARD REQUESTS

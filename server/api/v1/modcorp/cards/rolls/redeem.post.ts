@@ -1,7 +1,6 @@
 import {validateRequest} from "~/server/utils/api";
-import {card, cardRarity, redeemRoll as schema} from "~/server/schema/modcorp/cards";
+import {cardRarity, redeemRoll as schema} from "~/server/schema/modcorp/cards";
 import {tables, useDrizzle} from "~/server/utils/drizzle";
-import {ModCorp_Cards} from "~/server/database/schema";
 import randomWeightedChoice from "~/server/utils/rng";
 
 export default defineEventHandler(async (event) => {
@@ -37,7 +36,7 @@ export default defineEventHandler(async (event) => {
                 const selectedIndex = randomWeightedChoice(cardWeights)
                 if (selectedIndex !== undefined && selectedIndex !== null) {
                     const selectedCard = allCards[Number(selectedIndex)]
-                    targetUser.cards.push(Number(selectedIndex))
+                    targetUser.cards.push(Number(selectedCard.id))
                     let result = await db.update(tables.ModCorp_UserCards)
                         .set({cards: targetUser.cards})
                         .where(eq(tables.ModCorp_UserCards.user_id, Number(context.body.user_id)))
@@ -46,7 +45,7 @@ export default defineEventHandler(async (event) => {
                         await db.insert(tables.ModCorp_Logs).values({
                             "user_name": context.body.user_name,
                             "user_id": context.body.user_id,
-                            "action": `Rolled the card [${selectedIndex}] ${selectedCard.name} (${selectedCard.rarity}).`,
+                            "action": `Rolled the card [${selectedCard.id}] ${selectedCard.name} (${selectedCard.rarity}).`,
                             "reason": null,
                             "timestamp": new Date().toISOString()
                         })
