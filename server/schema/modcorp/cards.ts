@@ -57,7 +57,7 @@ export const awardRoll = z.strictObject({
     "user_name": z.string(),
     "user_id": z.string(),
     "amount": z.number().min(0),
-    "reason": z.number().min(0),
+    "reason": z.string(),
 })
 
 // BANNER REQUESTS

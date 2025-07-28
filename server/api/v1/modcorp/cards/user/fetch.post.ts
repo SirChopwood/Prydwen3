@@ -8,10 +8,10 @@ export default defineEventHandler(async (event) => {
     let targetUser
     try {
         targetUser = await db.query.ModCorp_UserCards.findFirst({
-                where: (user, {eq}) => {
-                    return eq(user.user_id, Number(context.body.user_id))
-                }
-            })
+            where: (user, {eq}) => {
+                return eq(user.user_id, Number(context.body.user_id))
+            }
+        })
     } catch (error) {
         console.log(error)
         throw createError({statusCode: 400, statusMessage: `Failed to fetch User.`})
