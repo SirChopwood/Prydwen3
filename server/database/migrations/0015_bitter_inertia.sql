@@ -1,0 +1,1 @@
+ALTER TABLE `ModCorp_UserCards` RENAME COLUMN "discord_id" TO "user_id";
