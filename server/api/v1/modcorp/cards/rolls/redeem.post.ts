@@ -42,6 +42,10 @@ export default defineEventHandler(async (event) => {
                         .where(eq(tables.ModCorp_UserCards.user_id, Number(context.body.user_id)))
                         .returning()
                     if (result && result.length > 0) {
+                        await db.update(tables.ModCorp_UserCards)
+                            .set({rolls: (targetUser.rolls - 1)})
+                            .where(eq(tables.ModCorp_UserCards.user_id, Number(context.body.user_id)))
+                            .returning()
                         await db.insert(tables.ModCorp_Logs).values({
                             "user_name": context.body.user_name,
                             "user_id": context.body.user_id,
