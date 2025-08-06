@@ -74,13 +74,13 @@ export async function createRequest(sessionId: number, user: string, request: {t
             } catch (error) {
                 console.log(error)
                 if (blocking) {
-                    throw createError({statusCode: 400, statusMessage: `Failed to add Request to Session.`})
+                    throw createError({statusCode: 500, statusMessage: `Failed to add Request to Session.`})
                 }
             }
         } catch (error) {
             console.log(error)
             if (blocking) {
-                throw createError({statusCode: 400, statusMessage: `Failed to create new Request.`})
+                throw createError({statusCode: 500, statusMessage: `Failed to create new Request.`})
             }
         }
     }

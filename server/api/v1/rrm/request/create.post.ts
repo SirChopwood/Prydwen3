@@ -14,6 +14,6 @@ export default defineEventHandler(async (event) => {
                 return await createRequest(context.body.session, context.body.user, result, true)
             }
         }
-        throw createError({statusCode: 400, statusMessage: `Request could not be validated in any of the following Sources: ${String(session.sources)}.`})
+        throw createError({statusCode: 404, statusMessage: `Request could not be validated in any of the following Sources: ${String(session.sources)}.`})
     }
 })
