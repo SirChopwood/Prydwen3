@@ -53,6 +53,26 @@ export async function createRequest(sessionId: number, user: string, request: {t
     let newRequest: Array<RRM_Request> = []
     let db = useDrizzle()
     if (await isSessionIdValid(sessionId, blocking)) {
+        let existing: Array<RRM_Request> = []
+        try {
+            existing = await useDrizzle().query.RRM_Request.findMany({
+                where: (requests, {eq, and}) => {
+                    return and(eq(requests.sessionId, sessionId), eq(requests.code, request.code))
+                }
+            })
+        } catch (error) {
+            if (blocking) {
+                throw createError({statusCode: 500, statusMessage: `Failed to validate new Request.`})
+            }
+        }
+        if (existing.length > 0) {
+            if (blocking) {
+                throw createError({statusCode: 400, statusMessage: `That has already been requested.`})
+            } else {
+                return
+            }
+        }
+
         try {
             newRequest = await db.insert(tables.RRM_Request).values({
                 sessionId: sessionId,
