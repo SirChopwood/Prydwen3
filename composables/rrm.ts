@@ -389,9 +389,9 @@ class RRM_Request_Listener {
 
         if (this.reloadListener()) {
             console.log("Rami Request Listener - Event Listener Connecting...")
+        } else {
+            console.log("Rami Request Listener - Failed to Connect.")
         }
-
-        console.log("Rami Request Listener - Running! :3")
     }
 
     /**
@@ -409,28 +409,43 @@ class RRM_Request_Listener {
     }
 
     /**
+     * Attempts to reconnect the listener x number of times before giving up.
+     */
+    reloadListener (attempts: number = 3) {
+        console.log("Attempting to reload listener.")
+        for (let i = 0; i < attempts; i++){
+            if (this.attemptConnection()) {
+                return true
+            }
+        }
+        console.log(`Maximum Attempts (${attempts}) failed, stopping.`)
+        return false
+    }
+
+    /**
      * Creates a new SSE Listener, closing the active one if needed and setting the auto-refresh.
      */
-    reloadListener () {
+    attemptConnection () {
         if (this.webSocket) {
+            console.log("Existing socket open, restarting...")
             this.webSocket.close()
         }
         this.webSocket = new WebSocket("/api/v1/rrm/events/listener")
         if (this.webSocket) {
             this.webSocket.addEventListener("open", (event) => {
-                console.log(`[WebSocket] Connected to ${this.webSocket!.url}`)
+                console.log(`[WS] Connected to ${this.webSocket!.url}`)
                 this.webSocket!.send(JSON.stringify({
                     type: "Target",
                     data: {
                         channelName: this.channel.value
                     }
                 }))
-                console.log("[WebSocket] Event Listener Channel Set")
+                console.log("[WS] Target Request Sent")
             })
 
             this.webSocket.addEventListener("message", (event) => {
                 let {type, data} = JSON.parse(event.data)
-                console.debug(`[WebSocket] Message Received: Type "${type}"`);
+                console.debug(`[WS] Message Received: Type "${type}"`);
 
                 if (type === "Session") {
                     this.session.value = data as RRM_Session
@@ -440,21 +455,23 @@ class RRM_Request_Listener {
                         newList[request.id] = request
                     }
                     this.requests.value = newList
+                } else if (type === "TargetConfirm") {
+                    console.log(`[WS] Target Received: ${JSON.stringify({data})}`)
                 }
             })
 
             this.webSocket.addEventListener("close", (event) => {
-                console.log(`[WebSocket] Connection closed: ${event.reason}`)
+                console.log(`[WS] Connection closed: ${event.reason}`)
             })
 
             this.webSocket.addEventListener("error", (event) => {
-                console.log(`[WebSocket] Error: ${event}`)
+                console.log(`[WS] Error: ${event}`)
             })
 
             this.webSocketRefreshTimer = setTimeout(this.reloadListener.bind(this), 1000*60*5)
             return true
         } else {
-            console.log("[WebSocket] Failed to connect!")
+            console.log("[WS] Failed to connect!")
             return false
         }
     }

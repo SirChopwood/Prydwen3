@@ -32,7 +32,6 @@ export async function fetchModeratedChannels(channelId: number, channelName: str
 
 export async function fetchChannelInfo(channel: {id?: number, name?: string}, clientId = "", clientSecret = "") {
     if (channel.name || channel.id) {
-        console.log(`TWITCH Client ID: ${clientId ? clientId : process.env.NUXT_OAUTH_TWITCH_CLIENT_ID}, Client Secret: ${clientSecret ? clientSecret : process.env.NUXT_OAUTH_TWITCH_CLIENT_SECRET}`)
         const tokenRequest = await fetch(url.format({
             protocol: "https",
             hostname: "id.twitch.tv",

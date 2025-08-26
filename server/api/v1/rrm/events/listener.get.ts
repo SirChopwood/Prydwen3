@@ -10,13 +10,11 @@ export default defineWebSocketHandler({
     },
     async open(peer) {
         console.log(`[WebSocket] Socket Opened`);
-        peer.subscribe(`${peer.id}`)
     },
     async message(peer, message) {
         let {type, data} = message.json() as {type: string, data: any}
         console.log(`[WebSocket] Message Received: Type "${type}"`);
         if (type === "Target") {
-            console.log(JSON.stringify(data))
             let channelInfo = await fetchChannelInfo(
                 {
                     name: data.channelName
@@ -30,12 +28,15 @@ export default defineWebSocketHandler({
                     name : channelInfo.display_name,
                     id: channelInfo.id
                 }
-                console.log(`Channel set to: ${targetChannel}`)
+                console.log(`Channel set to: ${targetChannel.name}`)
+                peer.send({ type: "TargetConfirm",
+                    data: targetChannel
+                })
 
                 if (updateTimer) {
                     clearInterval(updateTimer)
                 }
-                updateTimer = setInterval(sendUpdate, 1000, peer)
+                updateTimer = setInterval(sendUpdate, 3000, peer)
             }
         }
     },
@@ -43,8 +44,7 @@ export default defineWebSocketHandler({
         console.log(`[WebSocket] Error: ${error}`);
     },
     async close(peer) {
-        console.log(`[WebSocket] Socket Closed: ${peer.remoteAddress}`)
-        peer.unsubscribe(`${peer.id}`)
+        console.log(`[WebSocket] Socket Closed`)
         clearInterval(updateTimer!)
     }
 })
@@ -61,10 +61,10 @@ async function sendUpdate(peer: Peer) {
             })
         })
         if (rrm_session.length > 0) {
-            peer.publish(`${peer.id}`, { type: "Session",
+            peer.send({ type: "Session",
                 data: rrm_session[0]
             })
-            peer.publish(`${peer.id}`,{ type: "Requests",
+            peer.send({ type: "Requests",
                 data: await $fetch("/api/v1/rrm/request/fetch", {
                     method: "POST",
                     body: JSON.stringify({
