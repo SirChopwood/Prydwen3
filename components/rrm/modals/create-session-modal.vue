@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import ModalTemplate from "~/components/rrm/modal-template.vue";
-import ControlButton from "~/components/rrm/control-button.vue";
-import NewMultiselect from "~/components/rrm/new-multiselect.vue";
+import ModalTemplate from "~/components/rrm/panel/modal-template.vue";
+import ControlButton from "~/components/rrm/panel/control-button.vue";
+import NewMultiselect from "~/components/rrm/panel/new-multiselect.vue";
 
 const props = defineProps({
   name: {

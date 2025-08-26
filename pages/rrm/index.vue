@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import ToolbarButton from "~/components/rrm/toolbar-button.vue";
-import ControlCategory from "~/components/rrm/control-category.vue";
-import ControlButton from "~/components/rrm/control-button.vue";
-import RequestItem from "~/components/rrm/request-item.vue";
+import ToolbarButton from "~/components/rrm/panel/toolbar-button.vue";
+import ControlCategory from "~/components/rrm/panel/control-category.vue";
+import ControlButton from "~/components/rrm/panel/control-button.vue";
+import RequestItem from "~/components/rrm/panel/request-item.vue";
 import {useRequestManager} from "~/composables/rrm";
-import NewSelect from "~/components/rrm/new-select.vue";
+import NewSelect from "~/components/rrm/panel/new-select.vue";
 import {useModalManager} from "#imports";
 import CreateSessionModal from "~/components/rrm/modals/create-session-modal.vue";
 import TwitchAuthModal from "~/components/rrm/modals/twitch-auth-modal.vue";

@@ -1,6 +1,6 @@
 <script lang="ts">
 import {defineComponent} from 'vue'
-import ToolbarButton from "~/components/rrm/toolbar-button.vue";
+import ToolbarButton from "~/components/rrm/panel/toolbar-button.vue";
 
 export default defineComponent({
   name: "toolbar-select",

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ControlButton from "~/components/rrm/control-button.vue";
+import ControlButton from "~/components/rrm/panel/control-button.vue";
 const props = defineProps({
   title: {
     required: true,

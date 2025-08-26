@@ -1,6 +1,6 @@
 <script lang="ts">
 import {defineComponent} from 'vue'
-import ModalContainer from "~/components/rrm/modal-container.vue";
+import ModalContainer from "~/components/rrm/panel/modal-container.vue";
 
 export default defineComponent({
   name: "panel",

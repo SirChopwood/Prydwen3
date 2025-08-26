@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ToolbarButton from "~/components/rrm/toolbar-button.vue";
+import ToolbarButton from "~/components/rrm/panel/toolbar-button.vue";
 
 const props = defineProps({
   "default": {

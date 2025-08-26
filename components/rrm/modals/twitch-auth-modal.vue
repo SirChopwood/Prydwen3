@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import ModalTemplate from "~/components/rrm/modal-template.vue";
-import ControlButton from "~/components/rrm/control-button.vue";
+import ModalTemplate from "~/components/rrm/panel/modal-template.vue";
+import ControlButton from "~/components/rrm/panel/control-button.vue";
 const props = defineProps({
   name: {
     required: true,
