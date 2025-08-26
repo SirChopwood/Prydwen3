@@ -45,63 +45,6 @@ onMounted(async () => {
 onUnmounted(async () => {
   await RamiRequestManager.onUnmounted()
 })
-//
-// const { open: openAuthModal, close: closeAuthModal } = useModal({
-//   component: TwitchAuthModal,
-//   attrs: {
-//     userSessionData: RamiRequestManager.getUserProfile,
-//     onCloseModal() {
-//       closeAuthModal()
-//     },
-//     onLogin() {
-//       if (!RamiRequestManager.getUserSessionValid) {
-//         navigateTo('/api/v1/rrm/twitch/auth', {external: true})
-//       }
-//     },
-//     onLogout() {
-//       if (RamiRequestManager.getUserSessionValid) {
-//         RamiRequestManager.clearUserSession()
-//       }
-//     }
-//   },
-// })
-//
-// const { open: openCreateSessionModal, close: closeCreateSessionModal } = useModal({
-//   component: CreateSessionModal,
-//   attrs: {
-//     userSessionData: RamiRequestManager.getUserProfile,
-//     moddedChannels: RamiRequestManager.getModdedChannels,
-//     onCloseModal() {
-//       closeCreateSessionModal()
-//     }
-//   },
-// })
-//
-// async function openCreateRequestModalWithContext() {
-//   patchCreateRequestModal({
-//     attrs: {
-//       userSessionData: RamiRequestManager.getUserProfile,
-//       sessionData: RamiRequestManager.getCurrentSession,
-//     }
-//   })
-//   RamiRequestManager.refreshTimerPaused.value = true
-//   await openCreateRequestModal()
-// }
-// const { open: openCreateRequestModal, close: closeCreateRequestModal, patchOptions: patchCreateRequestModal } = useModal({
-//   component: CreateRequestModal,
-//   attrs: {
-//     userSessionData: RamiRequestManager.getUserProfile,
-//     sessionData: RamiRequestManager.getCurrentSession,
-//     onCloseModal() {
-//       RamiRequestManager.refreshTimerPaused.value = false
-//       closeCreateRequestModal()
-//     },
-//     async onRequestCreated() {
-//       //await RamiRequestManager.refreshSessions()
-//       await closeCreateSessionModal()
-//     }
-//   },
-// })
 
 async function onChannelSelected(selection: string) {
   if (selection === "No Stream") {

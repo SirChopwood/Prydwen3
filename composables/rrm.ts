@@ -1,7 +1,6 @@
 import type {UserSessionComposable} from "#auth-utils";
 import type {RRM_Session, RRM_Request} from "~/server/utils/drizzle";
-import {useUserSession} from "#build/imports";
-import type {Timeout} from "unenv/node/internal/timers/timeout";
+import {useUserSession} from "#imports";
 
 // REQUEST MANAGER FOR PANEL
 
@@ -22,7 +21,7 @@ class RRM_Request_Manager {
     refreshTimerPaused: Ref<boolean> = ref(true)
     uptime: Ref<string> = ref("N/A")
     pingInterval: Ref<string> = ref("N/A")
-    hostName = ref(localStorage.getItem("hostName") || "")
+    hostName: Ref<string> = ref(localStorage.getItem("hostName") || "")
 
 
     constructor() {
