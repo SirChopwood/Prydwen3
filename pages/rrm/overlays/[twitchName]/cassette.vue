@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {useRequestListener} from "~/composables/rrm";
+import Cassette_tape from "~/components/rrm/overlays/cassette_tape.vue";
 
 definePageMeta({
   title: "Rami Request Manager",
@@ -82,20 +83,15 @@ setInterval(() => {currentScreenDisplay.value += 1}, 10000)
       </div>
     </div>
   </div>
+  <div class="fixed inset-x-96 bottom-0 h-40 flex flex-row overflow-visible">
+    <cassette_tape v-for="song of songList" :song="song" class="-rotate-[40deg] -mx-10 translate-y-10"></cassette_tape>
+  </div>
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@200..900&family=Sour+Gummy&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@200..900&display=swap');
 .inconsolata {
   font-family: "Inconsolata", monospace;
-  font-optical-sizing: auto;
-  font-weight: 400;
-  font-style: normal;
-  font-variation-settings:
-      "wdth" 100;
-}
-.sour-gummy {
-  font-family: "Sour Gummy", sans-serif;
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
