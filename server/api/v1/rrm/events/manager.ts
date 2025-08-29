@@ -50,6 +50,9 @@ export default defineWebSocketHandler({
                         })
                     })
                 }
+                else {
+                    peer.send({ type: "Update", data: {userSession, selectedSession}})
+                }
                 break;
             case "Position":
                 if (selectedSession) {

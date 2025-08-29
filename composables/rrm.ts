@@ -342,7 +342,7 @@ class RRM_Request_Manager {
         if (this.webSocket) {
             let ping = Date.now()
             this.webSocket.send(JSON.stringify({ type: "Ping", data: ping }))
-            this.webSocket.send(JSON.stringify({ type: "Update", data: ping }))
+            this.webSocket.send(JSON.stringify({ type: "Update", data: null }))
         }
     }
 
