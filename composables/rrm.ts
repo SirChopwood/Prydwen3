@@ -97,7 +97,6 @@ class RRM_Request_Manager {
         } else {
             this.webSocket.onopen = () => {
                 console.log(`[WS] Connected to ${this.webSocket!.url}`)
-                this.webSocket?.send(JSON.stringify({type: "Start", data: null}))
             }
 
             this.webSocket.onmessage = (event) => {
@@ -343,6 +342,7 @@ class RRM_Request_Manager {
         if (this.webSocket) {
             let ping = Date.now()
             this.webSocket.send(JSON.stringify({ type: "Ping", data: ping }))
+            this.webSocket.send(JSON.stringify({ type: "Update", data: ping }))
         }
     }
 

@@ -24,39 +24,34 @@ export default defineWebSocketHandler({
     async message(peer, message) {
         let {type, data} = message.json() as {type: string, data: any}
         console.log(`[WS] Message Received: Type "${type}"`);
+        // @ts-ignore
+        const userSession = await fetchUserSession(peer)
+        let selectedSession = await useStorage().getItem<number|null>(`${userSession.user?.id}-selectedSession`)
         switch (type) {
             case "Ping":
                 peer.send({ type: "Pong", data: data})
                 break;
-            case "Start":
-                updateTimer = setInterval(async () => {
-                    // @ts-ignore
-                    const userSession = await fetchUserSession(peer)
-                    let selectedSession = await useStorage().getItem<number|null>(`${userSession.user?.id}-selectedSession`)
-                    if (selectedSession) {
-                        peer.send({ type: "Requests",
-                            data: await $fetch("/api/v1/rrm/request/fetch", {
-                                method: "POST",
-                                body: JSON.stringify({
-                                    sessionId: selectedSession
-                                })
+            case "Update":
+                if (selectedSession) {
+                    peer.send({ type: "Requests",
+                        data: await $fetch("/api/v1/rrm/request/fetch", {
+                            method: "POST",
+                            body: JSON.stringify({
+                                sessionId: selectedSession
                             })
                         })
-                        peer.send({ type: "Session",
-                            data: await $fetch("/api/v1/rrm/session/fetch", {
-                                method: "POST",
-                                body: JSON.stringify({
-                                    sessionId: selectedSession
-                                })
+                    })
+                    peer.send({ type: "Session",
+                        data: await $fetch("/api/v1/rrm/session/fetch", {
+                            method: "POST",
+                            body: JSON.stringify({
+                                sessionId: selectedSession
                             })
                         })
-                    }
-                }, 1000)
+                    })
+                }
                 break;
             case "Position":
-                // @ts-ignore
-                const userSession = await fetchUserSession(peer)
-                let selectedSession = await useStorage().getItem<number|null>(`${userSession.user?.id}-selectedSession`)
                 if (selectedSession) {
                     await $fetch("/api/v1/rrm/session/position", {method: "POST", body: JSON.stringify({
                         sessionId: selectedSession,
