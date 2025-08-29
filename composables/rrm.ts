@@ -60,6 +60,8 @@ class RRM_Request_Manager {
         this.refreshUptime()
         setInterval(this.refreshUptime.bind(this), 1000) // Update Timer every second
         setInterval(this.heartbeatPing.bind(this), 5000)
+        setInterval(this.updateData.bind(this), 2000)
+
         console.log("Rami Request Manager - Internal Timer Setup")
 
         this.refreshTimerPaused.value = false
@@ -342,7 +344,12 @@ class RRM_Request_Manager {
         if (this.webSocket) {
             let ping = Date.now()
             this.webSocket.send(JSON.stringify({ type: "Ping", data: ping }))
-            this.webSocket.send(JSON.stringify({ type: "Update", data: {sessionId: this.currentSessionId.value} }))
+        }
+    }
+
+    private async updateData () {
+        if (this.webSocket) {
+            this.webSocket.send(JSON.stringify({type: "Update", data: {sessionId: this.currentSessionId.value}}))
         }
     }
 
