@@ -97,6 +97,7 @@ class RRM_Request_Manager {
         } else {
             this.webSocket.onopen = () => {
                 console.log(`[WS] Connected to ${this.webSocket!.url}`)
+                this.webSocket?.send(JSON.stringify({type: "Start", data: null}))
             }
 
             this.webSocket.onmessage = (event) => {
