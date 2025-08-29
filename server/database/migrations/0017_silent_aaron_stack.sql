@@ -1,0 +1,1 @@
+ALTER TABLE `RRM_Session` ADD `current_request` integer DEFAULT 0 NOT NULL;

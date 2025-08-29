@@ -491,4 +491,11 @@ class RRM_Request_Listener {
         return orderedRequests
     }
 
+    get getCurrentRequest () {
+        return this.session.value ? this.session.value.currentRequest : 0
+    }
+
+    get getSessionStatus () {
+        return this.session.value?.status
+    }
 }

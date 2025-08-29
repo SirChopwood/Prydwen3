@@ -35,6 +35,10 @@ export const RRM_Session = sqliteTable("RRM_Session", {
         .$type<Array<{name: String, id: Number}>>()
         .default([])
         .notNull(),
+
+    currentRequest: integer("current_request")
+        .default(0)
+        .notNull(),
 });
 
 export const RRM_Request = sqliteTable("RRM_Request", {
