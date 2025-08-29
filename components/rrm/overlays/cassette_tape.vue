@@ -5,9 +5,18 @@ let randomLabel: Ref<string> = ref("")
 let randomHue: Ref<string> = ref("")
 
 onMounted(async () => {
-  randomLabel.value = `/images/rrm/overlays/cassette/Label${Math.ceil((props.song.text.length % 4) + 1)}.png`
-  randomHue.value = `filter: hue-rotate(${(props.song.text.length * 123) % 360}deg)`
+  updateRefs(props.song)
+  watch(() => props.song, (newSong, oldSong) => {
+    if (newSong.code !== oldSong.code) {
+      updateRefs(newSong)
+    }
+  })
 })
+
+function updateRefs(song: any) {
+  randomLabel.value = `/images/rrm/overlays/cassette/Label${Math.ceil((song.text.length % 4) + 1)}.png`
+  randomHue.value = `filter: hue-rotate(${(song.text.length * 123) % 360}deg)`
+}
 </script>
 
 <template>
