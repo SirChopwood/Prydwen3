@@ -24,41 +24,33 @@ export default defineWebSocketHandler({
     async message(peer, message) {
         let {type, data} = message.json() as {type: string, data: any}
         console.log(`[WS] Message Received: Type "${type}"`);
-        // @ts-ignore
-        const userSession = await fetchUserSession(peer)
-        let selectedSession = await useStorage().getItem<number|null>(`${userSession.user?.id}-selectedSession`)
         switch (type) {
             case "Ping":
                 peer.send({ type: "Pong", data: data})
                 break;
             case "Update":
-                if (selectedSession) {
-                    peer.send({ type: "Requests",
-                        data: await $fetch("/api/v1/rrm/request/fetch", {
-                            method: "POST",
-                            body: JSON.stringify({
-                                sessionId: selectedSession
-                            })
+                peer.send({ type: "Requests",
+                    data: await $fetch("/api/v1/rrm/request/fetch", {
+                        method: "POST",
+                        body: JSON.stringify({
+                            sessionId: data.sessionId
                         })
                     })
-                    peer.send({ type: "Session",
-                        data: await $fetch("/api/v1/rrm/session/fetch", {
-                            method: "POST",
-                            body: JSON.stringify({
-                                sessionId: selectedSession
-                            })
+                })
+                peer.send({ type: "Session",
+                    data: await $fetch("/api/v1/rrm/session/fetch", {
+                        method: "POST",
+                        body: JSON.stringify({
+                            sessionId: data.sessionId
                         })
                     })
-                }
-                else {
-                    peer.send({ type: "Update", data: {userSession, selectedSession}})
-                }
+                })
                 break;
             case "Position":
-                if (selectedSession) {
+                if (data.sessionId) {
                     await $fetch("/api/v1/rrm/session/position", {method: "POST", body: JSON.stringify({
-                        sessionId: selectedSession,
-                        newPosition: data.value
+                        sessionId: data.sessionId,
+                        newPosition: data.position
                     })})
                 }
                 break

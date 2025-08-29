@@ -342,7 +342,7 @@ class RRM_Request_Manager {
         if (this.webSocket) {
             let ping = Date.now()
             this.webSocket.send(JSON.stringify({ type: "Ping", data: ping }))
-            this.webSocket.send(JSON.stringify({ type: "Update", data: null }))
+            this.webSocket.send(JSON.stringify({ type: "Update", data: {sessionId: this.currentSessionId.value} }))
         }
     }
 
@@ -359,7 +359,7 @@ class RRM_Request_Manager {
             if (value < 0 && value > Object.keys(this.requestList.value).length) {
                 return false
             }
-            this.webSocket.send(JSON.stringify({ type: "Position", data: {value: value} }))
+            this.webSocket.send(JSON.stringify({ type: "Position", data: {sessionId: this.currentSessionId.value, position: value} }))
             // await $fetch("/api/v1/rrm/session/position", {method: "POST", body: JSON.stringify({
             //         sessionId: this.getCurrentSession.id,
             //         newPosition: value
