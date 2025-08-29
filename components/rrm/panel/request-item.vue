@@ -9,6 +9,10 @@ export default defineComponent({
       type: Object as PropType<RRM_Request>,
       required: true,
     },
+    current: {
+      type: Boolean,
+      required: true,
+    }
   },
   mounted() {
     this.$refs.Button.addEventListener("click", () => {
@@ -19,7 +23,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="group w-full mb-1 flex flex-row has-[:hover]:bg-neutral-800 rounded-md relative">
+  <div class="group w-full mb-1 flex flex-row has-[:hover]:bg-neutral-800 rounded-md relative" :style="current ? 'border: dashed rgb(37 99 235)' : ''">
     <div class="SongQueueEntryHandle self-stretch w-6 mx-2 cursor-move *:fill-neutral-700 *:group-hover:fill-neutral-400 *:hover:!fill-primary flex justify-center items-center">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="size-4">
         <path fill-rule="evenodd" d="M2 3.75A.75.75 0 0 1 2.75 3h10.5a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 3.75ZM2 8a.75.75 0 0 1 .75-.75h10.5a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 8Zm0 4.25a.75.75 0 0 1 .75-.75h10.5a.75.75 0 0 1 0 1.5H2.75a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />

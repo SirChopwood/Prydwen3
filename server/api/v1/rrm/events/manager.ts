@@ -47,8 +47,21 @@ export default defineWebSocketHandler({
     async message(peer, message) {
         let {type, data} = message.json() as {type: string, data: any}
         console.log(`[WS] Message Received: Type "${type}"`);
-        if (type === "Ping") {
-            peer.send({ type: "Pong", data: data})
+        switch (type) {
+            case "Ping":
+                peer.send({ type: "Pong", data: data})
+                break;
+            case "Position":
+                // @ts-ignore
+                const userSession = await fetchUserSession(peer)
+                let selectedSession = await useStorage().getItem<number|null>(`${userSession.user?.id}-selectedSession`)
+                if (selectedSession) {
+                    await $fetch("/api/v1/rrm/session/position", {method: "POST", body: JSON.stringify({
+                        sessionId: selectedSession,
+                        newPosition: data.value
+                    })})
+                }
+                break
         }
     },
     async error(peer, error) {

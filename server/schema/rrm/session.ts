@@ -17,3 +17,8 @@ export const fetchSession = z.strictObject({
 export const setSession = z.strictObject({
     "sessionId": z.number().nullable(),
 })
+
+export const setPosition = z.strictObject({
+    "sessionId": z.number(),
+    "newPosition": z.number().min(0)
+})

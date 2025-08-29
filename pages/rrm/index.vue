@@ -142,22 +142,24 @@ let ping = computed(() => {
       </control-category>
 
       <!--OVERLAY CONTROLS-->
-      <control-category title="Overlay Controls" subtitle="Control how the Queue is displayed on the Overlay.">
-        <textarea ref="NotificationMessageText" class="w-full rounded-md bg-neutral-950 p-2 border-2 border-opacity-0 focus:border-opacity-100 border-neutral-700 !outline-none" placeholder="This is the message that will display when the queue is paused."></textarea>
-        <control-button ref="OverlayMessageWelcome" colour="Blue">Welcome</control-button>
-        <control-button ref="OverlayMessagePause" colour="Blue">Pause</control-button>
-        <control-button ref="OverlayMessageCustom" icon="material-symbols:drive-file-rename-outline" colour="Yellow">Custom Message</control-button>
-        <control-button ref="OverlayMessageRemove" icon="material-symbols:file-copy-off-outline" colour="Red">Remove Message</control-button>
+      <control-category title="Overlay Controls (DISABLED)" subtitle="Control how the Queue is displayed on the Overlay.">
+<!--        <textarea ref="NotificationMessageText" class="w-full rounded-md bg-neutral-950 p-2 border-2 border-opacity-0 focus:border-opacity-100 border-neutral-700 !outline-none" placeholder="This is the message that will display when the queue is paused."></textarea>-->
+<!--        <control-button ref="OverlayMessageWelcome" colour="Blue">Welcome</control-button>-->
+<!--        <control-button ref="OverlayMessagePause" colour="Blue">Pause</control-button>-->
+<!--        <control-button ref="OverlayMessageCustom" icon="material-symbols:drive-file-rename-outline" colour="Yellow">Custom Message</control-button>-->
+<!--        <control-button ref="OverlayMessageRemove" icon="material-symbols:file-copy-off-outline" colour="Red">Remove Message</control-button>-->
       </control-category>
 
       <!--REQUEST QUEUE-->
       <control-category title="Request Queue" subtitle="You can view and rearrange the queue below. Rearranging is currently not working.">
-        <control-button ref="RequestQueuePrevious" icon="material-symbols:fast-rewind-rounded" colour="Blue">Previous</control-button>
-        <control-button ref="RequestQueueNext" icon="material-symbols:fast-forward-rounded" colour="Blue">Next</control-button>
+        Current Position:
+        <control-button ref="RequestQueuePrevious" icon="material-symbols:fast-rewind-rounded" colour="Blue" @button-clicked="RamiRequestManager.setCurrentRequest(RamiRequestManager.getCurrentRequest-1)">Previous</control-button>
+        <span ref="UptimeText" class="codeblock min-w-10 inline-block text-center">{{RamiRequestManager.getCurrentRequest}}</span>
+        <control-button ref="RequestQueueNext" icon="material-symbols:fast-forward-rounded" colour="Blue" @button-clicked="RamiRequestManager.setCurrentRequest(RamiRequestManager.getCurrentRequest+1)">Next</control-button>
 <!--        <control-button ref="RequestQueueAdd" icon="material-symbols:add-2-rounded" colour="Green" @button-clicked="openCreateRequestModalWithContext">Add</control-button>-->
         <div ref="RequestQueue" class="h-40 resize-y overflow-y-scroll overflow-x-clip text-pretty min-h-20 w-full rounded-md bg-neutral-950 flex flex-col">
           <template v-if="RamiRequestManager.getRequestsByOrder && RamiRequestManager.getRequestsByOrder.length > 0">
-            <request-item v-for="requestItem of RamiRequestManager.getRequestsByOrder" :request="requestItem"/>
+            <request-item v-for="requestItem of RamiRequestManager.getRequestsByOrder" :request="requestItem" :current="requestItem == RamiRequestManager.getRequestsByOrder[RamiRequestManager.getCurrentRequest]"/>
           </template>
         </div>
       </control-category>

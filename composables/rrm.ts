@@ -352,6 +352,26 @@ class RRM_Request_Manager {
             this.pingInterval.value = `${Date.now() - startTime}ms`
         }
     }
+
+    async setCurrentRequest (value: number) {
+        if (this.getCurrentSession && this.webSocket) {
+            if (value < 0 && value > Object.keys(this.requestList.value).length) {
+                return false
+            }
+            this.webSocket.send(JSON.stringify({ type: "Position", data: {value: value} }))
+            // await $fetch("/api/v1/rrm/session/position", {method: "POST", body: JSON.stringify({
+            //         sessionId: this.getCurrentSession.id,
+            //         newPosition: value
+            // })})
+            await this.refreshSessions()
+            console.log(`Current Request set to ${value}`)
+            return true
+        }
+    }
+
+    get getCurrentRequest () {
+        return this.getCurrentSession ? this.getCurrentSession.currentRequest : 0
+    }
 }
 
 // REQUEST LISTENER FOR OVERLAYS
