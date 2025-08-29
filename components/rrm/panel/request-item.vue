@@ -16,7 +16,7 @@ export default defineComponent({
   },
   mounted() {
     this.$refs.Button.addEventListener("click", () => {
-      navigator.clipboard.writeText(this.code)
+      navigator.clipboard.writeText(this.request.code)
     })
   }
 })
