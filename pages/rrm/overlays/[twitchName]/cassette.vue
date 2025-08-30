@@ -51,7 +51,7 @@ let getCurrentScreenDisplay: ComputedRef<{title: string, value: string}> = compu
     case "status":
       return {title: "Status: ", value: String(RequestListener.getSessionStatus)}
     case "host":
-      return {title: "Host: ", value: String(RequestListener.getHost)}
+      return {title: "DJ: ", value: String(RequestListener.getHost)}
   }
   return {title: "", value: ""}
 })
