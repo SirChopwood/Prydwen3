@@ -526,4 +526,8 @@ class RRM_Request_Listener {
     get getSessionStatus () {
         return this.session.value?.status
     }
+
+    get getHost () {
+        return this.session.value?.lastUser
+    }
 }

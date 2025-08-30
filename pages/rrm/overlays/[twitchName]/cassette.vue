@@ -36,6 +36,7 @@ let screenDisplays: Array<{title: string, value: string}> = [
   {title: "User: ", value: "user"},
   {title: "Total: ", value: "total"},
   {title: "Status: ", value: "status"},
+  {title: "Host: ", value: "host"}
 ]
 let currentScreenDisplay = ref(0)
 let getCurrentScreenDisplay: ComputedRef<{title: string, value: string}> = computed(() => {
@@ -49,6 +50,8 @@ let getCurrentScreenDisplay: ComputedRef<{title: string, value: string}> = compu
       return {title: "Songs in Queue: ", value: String(songList.value.length - (currentSong.value + 1))}
     case "status":
       return {title: "Status: ", value: String(RequestListener.getSessionStatus)}
+    case "host":
+      return {title: "Host: ", value: String(RequestListener.getHost)}
   }
   return {title: "", value: ""}
 })
@@ -62,7 +65,7 @@ let tapeRowValues = computed(() => {
   }
   return list
 })
-setInterval(() => {currentScreenDisplay.value += 1}, 5000)
+setInterval(() => {currentScreenDisplay.value += 1}, 4000)
 </script>
 
 <template>
