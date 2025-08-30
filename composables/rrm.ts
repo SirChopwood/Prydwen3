@@ -496,7 +496,7 @@ class RRM_Request_Listener {
                 console.log(`[WS] Error: ${event}`)
             })
 
-            this.webSocketRefreshTimer = setTimeout(this.reloadListener.bind(this), 1000*60*5)
+            this.webSocketRefreshTimer = setTimeout(this.reloadListener.bind(this), 1000*30) // Need to fix issues so this can go up.
             return true
         } else {
             console.log("[WS] Failed to connect!")
