@@ -1,6 +1,7 @@
 import type {UserSessionComposable} from "#auth-utils";
 import type {RRM_Session, RRM_Request} from "~/server/utils/drizzle";
 import {useUserSession} from "#imports";
+import {z} from "zod";
 
 // REQUEST MANAGER FOR PANEL
 
@@ -9,6 +10,12 @@ export function useRequestManager() {
 }
 
 export type RequestManager = InstanceType<typeof RRM_Request_Manager>
+
+export enum SessionStatus {
+    Open = "Open",
+    Locked = "Locked",
+    Closed = "Closed"
+}
 
 class RRM_Request_Manager {
     private webSocket: WebSocket | null = null
@@ -22,7 +29,6 @@ class RRM_Request_Manager {
     uptime: Ref<string> = ref("N/A")
     pingInterval: Ref<string> = ref("N/A")
     hostName: Ref<string> = ref(localStorage.getItem("hostName") || "")
-
 
     constructor() {
         console.log("Rami Request Manager 1.3 - Loading...")
@@ -199,8 +205,8 @@ class RRM_Request_Manager {
 
         if (status.value === "success" && data.value) {
             let newList: Record<number, RRM_Session> = {}
-            for (let session of data.value) {
-                newList[session.id] = session as RRM_Session
+            for (let session of data.value as Array<RRM_Session>) {
+                newList[session.id] = session
             }
             this.sessionList.value = newList
             return
@@ -367,10 +373,6 @@ class RRM_Request_Manager {
                 return false
             }
             this.webSocket.send(JSON.stringify({ type: "Position", data: {sessionId: this.currentSessionId.value, position: value} }))
-            // await $fetch("/api/v1/rrm/session/position", {method: "POST", body: JSON.stringify({
-            //         sessionId: this.getCurrentSession.id,
-            //         newPosition: value
-            // })})
             await this.refreshSessions()
             console.log(`Current Request set to ${value}`)
             return true
@@ -379,6 +381,18 @@ class RRM_Request_Manager {
 
     get getCurrentRequest () {
         return this.getCurrentSession ? this.getCurrentSession.currentRequest : 0
+    }
+
+    async setCurrentStatus (value: SessionStatus) {
+        if (this.getCurrentSession && this.webSocket) {
+            this.webSocket.send(JSON.stringify({
+                type: "Status",
+                data: {sessionId: this.currentSessionId.value, status: value}
+            }))
+            await this.refreshSessions()
+            console.log(`Current Status set to ${value}`)
+            return true
+        }
     }
 }
 

@@ -3,7 +3,7 @@ import ToolbarButton from "~/components/rrm/panel/toolbar-button.vue";
 import ControlCategory from "~/components/rrm/panel/control-category.vue";
 import ControlButton from "~/components/rrm/panel/control-button.vue";
 import RequestItem from "~/components/rrm/panel/request-item.vue";
-import {useRequestManager} from "~/composables/rrm";
+import {SessionStatus, useRequestManager} from "~/composables/rrm";
 import NewSelect from "~/components/rrm/panel/new-select.vue";
 import {useModalManager} from "#imports";
 import CreateSessionModal from "~/components/rrm/modals/create-session-modal.vue";
@@ -136,9 +136,9 @@ let ping = computed(() => {
           <li>If you wish to pause the entering of requests, Lock the queue and reopen it when you're ready.</li>
           <li>Closing the Session will end it and allow that channel to open a new one or be added to another existing Session.</li>
         </ul>
-        <control-button ref="SessionQueueOpen" icon="material-symbols:lock-open-right-outline" colour="Green">Unlock</control-button>
-        <control-button ref="SessionQueueLock" icon="material-symbols:lock-outline" colour="Yellow">Lock</control-button>
-        <control-button ref="SessionQueueClose" icon="mdi:close-box-outline" colour="Red">Close</control-button>
+        <control-button ref="SessionQueueOpen" icon="material-symbols:lock-open-right-outline" colour="Green" :disabled="RamiRequestManager.getCurrentSession.status === SessionStatus.Open" @button-clicked="RamiRequestManager.setCurrentStatus(SessionStatus.Open)">Unlock</control-button>
+        <control-button ref="SessionQueueLock" icon="material-symbols:lock-outline" colour="Yellow" :disabled="RamiRequestManager.getCurrentSession.status === SessionStatus.Locked" @button-clicked="RamiRequestManager.setCurrentStatus(SessionStatus.Locked)">Lock</control-button>
+        <control-button ref="SessionQueueClose" icon="mdi:close-box-outline" colour="Red" :disabled="RamiRequestManager.getCurrentSession.status === SessionStatus.Closed" @button-clicked="RamiRequestManager.setCurrentStatus(SessionStatus.Closed)">Close</control-button>
       </control-category>
 
       <!--OVERLAY CONTROLS-->

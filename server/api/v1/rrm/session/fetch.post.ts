@@ -9,6 +9,15 @@ export default defineEventHandler(async (event) => {
     let activeSessions: Array<RRM_Session> = []
     if (context.body.channel && !context.body.force) {
         activeSessions = await fetchSessionByChannel(context.body.channel, true)
+    } else if (context.body.channels && !context.body.force) {
+        let sessionRecord: Record<string, RRM_Session> = {}
+        for await (const channel of context.body.channels) {
+            const session = await fetchSessionByChannel(channel)
+            if (session && session[0]) {
+                sessionRecord[channel.name] = session[0]
+            }
+        }
+        return sessionRecord
     } else if (context.body.sessionId) {
         let sessionFound = await fetchSessionById(context.body.sessionId, true)
         if (sessionFound) {

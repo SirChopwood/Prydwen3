@@ -10,6 +10,7 @@ export const createSession = z.strictObject({
 
 export const fetchSession = z.strictObject({
     "channel": TwitchChannel.optional(),
+    "channels": z.array(TwitchChannel).optional(),
     "force": z.boolean().optional(),
     "sessionId": z.number().optional(),
 })
@@ -21,4 +22,9 @@ export const setSession = z.strictObject({
 export const setPosition = z.strictObject({
     "sessionId": z.number(),
     "newPosition": z.number().min(0)
+})
+
+export const setStatus = z.strictObject({
+    "sessionId": z.number(),
+    "status": z.enum(["Open", "Locked", "Closed"])
 })

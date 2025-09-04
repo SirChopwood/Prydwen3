@@ -1,4 +1,5 @@
 import {fetchUserSession, fetchUserSessionSafe} from "~/server/utils/api";
+import {z} from "zod";
 
 let updateTimer: NodeJS.Timeout | null = null;
 
@@ -52,6 +53,14 @@ export default defineWebSocketHandler({
                         sessionId: data.sessionId,
                         newPosition: data.position
                     })})
+                }
+                break
+            case "Status":
+                if (data.sessionId) {
+                    await $fetch("/api/v1/rrm/session/status", {method: "POST", body: JSON.stringify({
+                            sessionId: data.sessionId,
+                            status: data.status
+                        })})
                 }
                 break
         }
