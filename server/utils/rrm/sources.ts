@@ -1,4 +1,4 @@
-import {default as YouTubeTs} from "youtube.ts"
+import {default as YTSearch} from "yt-search"
 
 export const Sources: Record<string, (request: string) => Promise<{
     text: string,
@@ -42,10 +42,10 @@ export async function PyPy(request: string) {
                 requestData.metadata["Group"] = data.groups[song.group]
                 requestData.metadata["Duration"] = String(song.end - song.start)
                 try {
-                    let yt = new YouTubeTs(process.env.YT_TOKEN)
-                    let video = await yt.videos.get(song.originalUrl[0])
+                    let video = await YTSearch({videoId: song.originalUrl[0]})
+
                     if (video) {
-                        requestData.metadata["Thumbnail"] = video.snippet.thumbnails.default.url
+                        requestData.metadata["Thumbnail"] = video.thumbnail
                     }
                 } catch (e) {
                     console.log("Could not find thumbnail")
@@ -73,19 +73,18 @@ export async function YouTube(request: string) {
     const ytRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/gi
     let ytRequest = ytRegex.exec(request)
     if (!ytRequest) {return undefined}
-    let yt = new YouTubeTs(process.env.YT_TOKEN)
-    let video = await yt.videos.get(ytRequest[0])
+    let video = await YTSearch({videoId: ytRequest[0]})
     if (!video) {return undefined}
 
 
     let requestData = {
-        text: video.snippet.title,
-        code: `https://www.youtube.com/watch?v=${video.id}`,
+        text: video.title,
+        code: `https://www.youtube.com/watch?v=${video.videoId}`,
         metadata: {
             "Source": "YouTube",
-            "Duration": video.contentDetails.duration,
-            "Thumbnail": video.snippet.thumbnails.default.url,
-            "Channel": video.snippet.channelTitle
+            "Duration": String(video.duration.seconds),
+            "Thumbnail": video.thumbnail,
+            "Channel": video.author.name
         }
     }
     console.log(`Processed ${request} as YouTube.`)
