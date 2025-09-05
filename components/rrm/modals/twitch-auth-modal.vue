@@ -56,7 +56,7 @@ let userSessionData = props.modalManager.requestManager.getUserSession?.user
       Please login to Twitch to see your account details.
     </div>
     <template v-slot:footer>
-      <control-button icon="mdi:logout" colour="Red" @button-clicked="logout" :disabled="!userSessionData">Log out</control-button>
+      <control-button icon="mdi:logout" colour="Blue" @button-clicked="logout" :disabled="!userSessionData">Log out</control-button>
       <control-button icon="mdi:twitch" colour="Purple" @button-clicked="login" :disabled="userSessionData">Log in to Twitch</control-button>
     </template>
   </modal-template>

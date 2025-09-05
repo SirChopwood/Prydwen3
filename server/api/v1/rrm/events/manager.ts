@@ -1,5 +1,4 @@
 import {fetchUserSession, fetchUserSessionSafe} from "~/server/utils/api";
-import {z} from "zod";
 
 let updateTimer: NodeJS.Timeout | null = null;
 

@@ -34,6 +34,16 @@ let twitchPlayer: any;
 let RamiRequestManager = useRequestManager()
 let modalManager = useModalManager(RamiRequestManager)
 
+enum viewModes {
+  Split,
+  Controls,
+}
+let viewMode = ref<viewModes>(viewModes.Split);
+function cycleViewMode() {
+  viewMode.value = (viewMode.value + 1) % 2
+  console.log( viewMode.value )
+}
+
 
 onMounted(async () => {
   await RamiRequestManager.onMounted()
@@ -92,7 +102,7 @@ let ping = computed(() => {
       <new-select default="None" :options="RamiRequestManager.getActiveSessionOptions" @update:model-value="async ($event) => (await RamiRequestManager.setCurrentSession(Number($event)))">
         Session:
       </new-select>
-      <toolbar-button ref="CreateSessionButton" @button-clicked="modalManager.showModal('createSession', CreateSessionModal)" :disabled="!RamiRequestManager.getUserSessionValid" class="hover:bg-red-900 hover:text-red-300 bg-red-950 text-red-400">
+      <toolbar-button ref="CreateSessionButton" @button-clicked="modalManager.showModal('createSession', CreateSessionModal)" :disabled="!RamiRequestManager.getUserSessionValid">
         Create Session
       </toolbar-button>
       <toolbar-button ref="HostButton" @button-clicked="modalManager.showModal('hostName', HostNameModal)">
@@ -101,6 +111,12 @@ let ping = computed(() => {
       <!--MID BAR GAP-->
       <div class="grow"/>
       <!--RIGHT SIDE CONTROLS-->
+      <toolbar-button ref="ForceRefreshButton" @button-clicked="RamiRequestManager.reloadWebSocket(); RamiRequestManager.refreshSessions()" class="stripes-warning hover:text-red-300 text-red-400">
+        Force Refresh
+      </toolbar-button>
+      <toolbar-button ref="ViewButton" @button-clicked="cycleViewMode()">
+        View Mode
+      </toolbar-button>
       <toolbar-button ref="HelpButton">
         Help
       </toolbar-button>
@@ -122,13 +138,13 @@ let ping = computed(() => {
     </fieldset>
   </div>
   <div class="w-full flex flex-row gap-4 p-4">
-    <div class="rounded-md bg-neutral-900 p-2 grow relative">
+    <div v-if="viewMode == viewModes.Split" class="rounded-md bg-neutral-900 p-2 basis-3/5 relative">
       <div class="h-fit w-full rounded-md bg-neutral-950 border-purple-950 border-2">
         <icon v-if="!twitchPlayer" name="mdi:twitch" class="size-1/3 text-purple-950 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse -z-50" />
         <div id="EmbeddedTwitchPlayer"/>
       </div>
     </div>
-    <fieldset ref="Controls" :disabled="!RamiRequestManager.getUserSessionValid" class="basis-2/5 flex flex-col gap-4 no-scrollbar" style="scrollbar-color: #404040 #171717">
+    <fieldset ref="Controls" :disabled="!RamiRequestManager.getUserSessionValid" class="grow flex flex-col gap-4 no-scrollbar" style="scrollbar-color: #404040 #171717">
       <!--SESSION CONTROLS-->
       <control-category title="Session Controls" subtitle="This is how you set if people can make requests.">
         <ul class="list-disc pl-6">
@@ -136,9 +152,9 @@ let ping = computed(() => {
           <li>If you wish to pause the entering of requests, Lock the queue and reopen it when you're ready.</li>
           <li>Closing the Session will end it and allow that channel to open a new one or be added to another existing Session.</li>
         </ul>
-        <control-button ref="SessionQueueOpen" icon="material-symbols:lock-open-right-outline" colour="Green" :disabled="RamiRequestManager.getCurrentSession.status === SessionStatus.Open" @button-clicked="RamiRequestManager.setCurrentStatus(SessionStatus.Open)">Unlock</control-button>
-        <control-button ref="SessionQueueLock" icon="material-symbols:lock-outline" colour="Yellow" :disabled="RamiRequestManager.getCurrentSession.status === SessionStatus.Locked" @button-clicked="RamiRequestManager.setCurrentStatus(SessionStatus.Locked)">Lock</control-button>
-        <control-button ref="SessionQueueClose" icon="mdi:close-box-outline" colour="Red" :disabled="RamiRequestManager.getCurrentSession.status === SessionStatus.Closed" @button-clicked="RamiRequestManager.setCurrentStatus(SessionStatus.Closed)">Close</control-button>
+        <control-button ref="SessionQueueOpen" icon="material-symbols:lock-open-right-outline" colour="Green" :disabled="RamiRequestManager.getCurrentStatus === SessionStatus.Open" @button-clicked="RamiRequestManager.setCurrentStatus(SessionStatus.Open)">Unlock</control-button>
+        <control-button ref="SessionQueueLock" icon="material-symbols:lock-outline" colour="Yellow" :disabled="RamiRequestManager.getCurrentStatus === SessionStatus.Locked" @button-clicked="RamiRequestManager.setCurrentStatus(SessionStatus.Locked)">Lock</control-button>
+        <control-button ref="SessionQueueClose" icon="mdi:close-box-outline" colour="Red" :disabled="RamiRequestManager.getCurrentStatus === SessionStatus.Closed" @button-clicked="RamiRequestManager.setCurrentStatus(SessionStatus.Closed)">Close</control-button>
       </control-category>
 
       <!--OVERLAY CONTROLS-->

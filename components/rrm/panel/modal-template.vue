@@ -26,7 +26,7 @@ const props = defineProps({
       <slot name="default"/>
     </div>
     <div class="bg-neutral-900 rounded-b-md py-1 px-2 stripes flex flex-row justify-between">
-      <control-button icon="mdi:close-box-outline" colour="Blue" @button-clicked="() => {modalManager.hideModal(name)}">Close</control-button>
+      <control-button icon="mdi:close-box-outline" colour="Red" @button-clicked="() => {modalManager.hideModal(name)}">Close</control-button>
       <div class="grow"/>
       <slot name="footer"/>
     </div>

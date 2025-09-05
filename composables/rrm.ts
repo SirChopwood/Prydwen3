@@ -1,7 +1,6 @@
 import type {UserSessionComposable} from "#auth-utils";
 import type {RRM_Session, RRM_Request} from "~/server/utils/drizzle";
 import {useUserSession} from "#imports";
-import {z} from "zod";
 
 // REQUEST MANAGER FOR PANEL
 
@@ -67,6 +66,7 @@ class RRM_Request_Manager {
         setInterval(this.refreshUptime.bind(this), 1000) // Update Timer every second
         setInterval(this.heartbeatPing.bind(this), 5000)
         setInterval(this.updateData.bind(this), 2000)
+        setInterval(this.refreshSessions.bind(this), 30000)
 
         console.log("Rami Request Manager - Internal Timer Setup")
 
@@ -107,20 +107,10 @@ class RRM_Request_Manager {
                 console.log(`[WS] Connected to ${this.webSocket!.url}`)
             }
 
-            this.webSocket.onmessage = (event) => {
+            this.webSocket.onmessage = async (event) => {
                 let {type, data} = JSON.parse(event.data)
                 console.log(`[WS] Message Received: Type "${type}"`);
-                if (type === "Session") {
-                    this.sessionList.value[data.id] = data as RRM_Session
-                } else if (type === "Requests") {
-                    let newList: Record<number, RRM_Request> = {}
-                    for (let request of data as Array<RRM_Request>) {
-                        newList[request.id] = request
-                    }
-                    this.requestList.value = newList
-                } else if (type === "Pong") {
-                    this.updatePing(data)
-                }
+                await this.handleWebsocketMessage(event, type, data)
             }
 
             this.webSocket.onerror = (event) => {
@@ -129,6 +119,20 @@ class RRM_Request_Manager {
 
             this.webSocketRefreshTimer = setTimeout(this.reloadWebSocket.bind(this), 1000*60*5)
             return true
+        }
+    }
+
+    async handleWebsocketMessage (event: MessageEvent<any>, type: string, data: any) {
+        if (type === "Session") {
+            this.sessionList.value[data.id] = data as RRM_Session
+        } else if (type === "Requests") {
+            let newList: Record<number, RRM_Request> = {}
+            for (let request of data as Array<RRM_Request>) {
+                newList[request.id] = request
+            }
+            this.requestList.value = newList
+        } else if (type === "Pong") {
+            this.updatePing(data)
         }
     }
 
@@ -355,7 +359,9 @@ class RRM_Request_Manager {
 
     private async updateData () {
         if (this.webSocket) {
-            this.webSocket.send(JSON.stringify({type: "Update", data: {sessionId: this.currentSessionId.value}}))
+            if (this.currentSessionId.value !== 0) {
+                this.webSocket.send(JSON.stringify({type: "Update", data: {sessionId: this.currentSessionId.value}}))
+            }
         }
     }
 
@@ -391,8 +397,15 @@ class RRM_Request_Manager {
             }))
             await this.refreshSessions()
             console.log(`Current Status set to ${value}`)
+            if (value === SessionStatus.Closed) {
+                this.currentSessionId.value = 0
+            }
             return true
         }
+    }
+
+    get getCurrentStatus () {
+        return this.getCurrentSession ? this.getCurrentSession.status : ""
     }
 }
 
