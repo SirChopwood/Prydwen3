@@ -1,3 +1,5 @@
+import {default as YouTubeTs} from "youtube.ts"
+
 export const Sources: Record<string, (request: string) => Promise<{
     text: string,
     code: string,
@@ -5,6 +7,7 @@ export const Sources: Record<string, (request: string) => Promise<{
 } | undefined>> = {
     "PyPy": PyPy,
     "PlainText": PlainText,
+    "YouTube": YouTube
 }
 
 export async function PyPy(request: string) {
@@ -38,6 +41,16 @@ export async function PyPy(request: string) {
                 requestData.metadata["Source"] = "PyPy"
                 requestData.metadata["Group"] = data.groups[song.group]
                 requestData.metadata["Duration"] = String(song.end - song.start)
+                try {
+                    let yt = new YouTubeTs(process.env.YT_TOKEN)
+                    let video = await yt.videos.get(song.originalUrl[0])
+                    if (video) {
+                        requestData.metadata["Thumbnail"] = video.snippet.thumbnails.default.url
+                    }
+                } catch (e) {
+                    console.log("Could not find thumbnail")
+                }
+
                 console.log(`Processed ${request} as PyPy.`)
                 return requestData
             }
@@ -53,5 +66,28 @@ export async function PlainText(request: string) {
     requestData.code = request
     requestData.metadata["Source"] = "PlainText"
     console.log(`Processed ${request} as Plain Text.`)
+    return requestData
+}
+
+export async function YouTube(request: string) {
+    const ytRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/gi
+    let ytRequest = ytRegex.exec(request)
+    if (!ytRequest) {return undefined}
+    let yt = new YouTubeTs(process.env.YT_TOKEN)
+    let video = await yt.videos.get(ytRequest[0])
+    if (!video) {return undefined}
+
+
+    let requestData = {
+        text: video.snippet.title,
+        code: `https://www.youtube.com/watch?v=${video.id}`,
+        metadata: {
+            "Source": "YouTube",
+            "Duration": video.contentDetails.duration,
+            "Thumbnail": video.snippet.thumbnails.default.url,
+            "Channel": video.snippet.channelTitle
+        }
+    }
+    console.log(`Processed ${request} as YouTube.`)
     return requestData
 }

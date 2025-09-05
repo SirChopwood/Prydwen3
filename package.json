@@ -24,7 +24,8 @@
         "nuxt": "3.17.7",
         "nuxt-auth-utils": "^0.5.20",
         "vue": "^3.5.17",
-        "vue-router": "^4.5.1"
+        "vue-router": "^4.5.1",
+        "youtube.ts": "^0.3.4"
     },
     "devDependencies": {
         "@iconify-json/file-icons": "^1.2.1",
