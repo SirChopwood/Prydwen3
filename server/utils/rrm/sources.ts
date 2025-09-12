@@ -12,44 +12,39 @@ export const Sources: Record<string, (request: string) => Promise<{
 
 export async function PyPy(request: string) {
     let requestData = {text: "", code: "", metadata: {} as Record<string, string>}
-    let res = await fetch('https://jd.pypy.moe/api/v2/songs')
+    let res = await fetch('https://api.pypy.dance/bundle')
     if (res.status === 200) {
         let data = await res.json() as {
-            updatedAt: number,
-            songs: Array<{
-                "id": number,
-                "group": number,
-                "volume": number,
-                "name": string,
-                "flip": boolean,
-                "start": number,
-                "end": number,
-                "skipRandom": boolean,
-                "originalUrl": Array<string>,
-                "tags": Array<string>
-            }>,
-            localization: Array<any>,
+            l10n: any,
             groups: Array<string>,
+            songs: Array<{
+                i: number,
+                g: number,
+                n: string,
+                e: number,
+                o: Array<string>,
+                t: Array<string>,
+            }>
         }
         const ytRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/gi
         let ytRequest = ytRegex.exec(request)
         for (let song of data.songs) {
             // If Request matches ID or YT URL
-            if (String(song.id) === String(request) || (ytRequest && String(song.originalUrl[0]) === String(ytRequest[0]))) {
-                requestData.code = String(song.id)
-                requestData.text = song.name
+            if (String(song.i) === String(request) || (ytRequest && String(song.o[0]) === String(ytRequest[0]))) {
+                requestData.code = String(song.i)
+                requestData.text = song.n
                 requestData.metadata["Source"] = "PyPy"
-                requestData.metadata["Group"] = data.groups[song.group]
-                requestData.metadata["Duration"] = String(song.end - song.start)
-                try {
-                    let video = await YTSearch({videoId: song.originalUrl[0]})
-
-                    if (video) {
-                        requestData.metadata["Thumbnail"] = video.thumbnail
-                    }
-                } catch (e) {
-                    console.log("Could not find thumbnail")
-                }
+                requestData.metadata["Group"] = data.groups[song.g]
+                requestData.metadata["Duration"] = String(song.e)
+                // try {
+                //     let video = await YTSearch({videoId: song.originalUrl[0]})
+                //
+                //     if (video) {
+                //         requestData.metadata["Thumbnail"] = video.thumbnail
+                //     }
+                // } catch (e) {
+                //     console.log("Could not find thumbnail")
+                // }
 
                 console.log(`Processed ${request} as PyPy.`)
                 return requestData
