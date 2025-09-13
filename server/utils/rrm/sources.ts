@@ -1,5 +1,3 @@
-import {default as YTSearch} from "yt-search"
-
 export const Sources: Record<string, (request: string) => Promise<{
     text: string,
     code: string,
@@ -7,7 +5,7 @@ export const Sources: Record<string, (request: string) => Promise<{
 } | undefined>> = {
     "PyPy": PyPy,
     "PlainText": PlainText,
-    "YouTube": YouTube
+    // "YouTube": YouTube
 }
 
 export async function PyPy(request: string) {
@@ -63,25 +61,25 @@ export async function PlainText(request: string) {
     console.log(`Processed ${request} as Plain Text.`)
     return requestData
 }
-
-export async function YouTube(request: string) {
-    const ytRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/gi
-    let ytRequest = ytRegex.exec(request)
-    if (!ytRequest) {return undefined}
-    let video = await YTSearch({videoId: ytRequest[0]})
-    if (!video) {return undefined}
-
-
-    let requestData = {
-        text: video.title,
-        code: `https://www.youtube.com/watch?v=${video.videoId}`,
-        metadata: {
-            "Source": "YouTube",
-            "Duration": String(video.duration.seconds),
-            "Thumbnail": video.thumbnail,
-            "Channel": video.author.name
-        }
-    }
-    console.log(`Processed ${request} as YouTube.`)
-    return requestData
-}
+//
+// export async function YouTube(request: string) {
+//     const ytRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/gi
+//     let ytRequest = ytRegex.exec(request)
+//     if (!ytRequest) {return undefined}
+//     let video = await YTSearch({videoId: ytRequest[0]})
+//     if (!video) {return undefined}
+//
+//
+//     let requestData = {
+//         text: video.title,
+//         code: `https://www.youtube.com/watch?v=${video.videoId}`,
+//         metadata: {
+//             "Source": "YouTube",
+//             "Duration": String(video.duration.seconds),
+//             "Thumbnail": video.thumbnail,
+//             "Channel": video.author.name
+//         }
+//     }
+//     console.log(`Processed ${request} as YouTube.`)
+//     return requestData
+// }
