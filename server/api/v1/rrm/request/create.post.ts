@@ -9,7 +9,13 @@ export default defineEventHandler(async (event) => {
     let session = await fetchSessionById(context.body.session, true)
     if (session) {
         for (let sourceName of session.sources) {
-            let result = await Sources[String(sourceName)](context.body.request)
+            let result
+            try {
+                result = await Sources[String(sourceName)](context.body.request)
+            } catch (e) {
+                console.log(`Failed to check ${context.body.request} against ${sourceName} with Error: ${e}`)
+                continue
+            }
             if (result) {
                 return await createRequest(context.body.session, context.body.user, result, true)
             }
