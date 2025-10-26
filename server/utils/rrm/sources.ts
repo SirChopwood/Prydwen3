@@ -1,3 +1,5 @@
+import GoogleOAuth, {GoogleKey} from "~/server/utils/googleapi";
+
 export const Sources: Record<string, (request: string) => Promise<{
     text: string,
     code: string,
@@ -5,51 +7,46 @@ export const Sources: Record<string, (request: string) => Promise<{
 } | undefined>> = {
     "PyPy": PyPy,
     "PlainText": PlainText,
-    // "YouTube": YouTube
+    "YouTube": YouTube
 }
 
 export async function PyPy(request: string) {
     let requestData = {text: "", code: "", metadata: {} as Record<string, string>}
     let res = await fetch('https://api.pypy.dance/bundle')
-    if (res.status === 200) {
-        let data = await res.json() as {
-            l10n: any,
-            groups: Array<string>,
-            songs: Array<{
-                i: number,
-                g: number,
-                n: string,
-                e: number,
-                o: Array<string>,
-                t: Array<string>,
-            }>
-        }
-        const ytRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/gi
-        let ytRequest = ytRegex.exec(request)
-        for (let song of data.songs) {
-            // If Request matches ID or YT URL
-            if (String(song.i) === String(request) || (ytRequest && String(song.o[0]) === String(ytRequest[0]))) {
-                requestData.code = String(song.i)
-                requestData.text = song.n
-                requestData.metadata["Source"] = "PyPy"
-                requestData.metadata["Group"] = data.groups[song.g]
-                requestData.metadata["Duration"] = String(song.e)
-                // try {
-                //     let video = await YTSearch({videoId: song.originalUrl[0]})
-                //
-                //     if (video) {
-                //         requestData.metadata["Thumbnail"] = video.thumbnail
-                //     }
-                // } catch (e) {
-                //     console.log("Could not find thumbnail")
-                // }
+    if (!res.ok) {return undefined}
 
-                console.log(`Processed ${request} as PyPy.`)
-                return requestData
-            }
+    let data = await res.json() as {
+        l10n: any,
+        groups: Array<string>,
+        songs: Array<{
+            i: number,
+            g: number,
+            n: string,
+            e: number,
+            o: Array<string>,
+            t: Array<string>,
+        }>
+        }
+    for (let song of data.songs) {
+        // If Request matches ID or YT URL
+        if (String(song.i) === String(request)) {
+            requestData.code = String(song.i)
+            requestData.text = song.n
+            requestData.metadata["Source"] = "PyPy"
+            requestData.metadata["Group"] = data.groups[song.g]
+            requestData.metadata["Duration"] = String(song.e)
+            // try {
+            //     let video = await YTSearch({videoId: song.originalUrl[0]})
+            //
+            //     if (video) {
+            //         requestData.metadata["Thumbnail"] = video.thumbnail
+            //     }
+            // } catch (e) {
+            //     console.log("Could not find thumbnail")
+            // }
+            return requestData
         }
     }
-    console.log(`Failed to process ${request} as PyPy.`)
     return undefined
 }
 
@@ -58,28 +55,41 @@ export async function PlainText(request: string) {
     requestData.text = request
     requestData.code = request
     requestData.metadata["Source"] = "PlainText"
-    console.log(`Processed ${request} as Plain Text.`)
     return requestData
 }
-//
-// export async function YouTube(request: string) {
-//     const ytRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/gi
-//     let ytRequest = ytRegex.exec(request)
-//     if (!ytRequest) {return undefined}
-//     let video = await YTSearch({videoId: ytRequest[0]})
-//     if (!video) {return undefined}
-//
-//
-//     let requestData = {
-//         text: video.title,
-//         code: `https://www.youtube.com/watch?v=${video.videoId}`,
-//         metadata: {
-//             "Source": "YouTube",
-//             "Duration": String(video.duration.seconds),
-//             "Thumbnail": video.thumbnail,
-//             "Channel": video.author.name
-//         }
-//     }
-//     console.log(`Processed ${request} as YouTube.`)
-//     return requestData
-// }
+
+export async function YouTube(request: string) {
+    // Filter YT video ID
+    const ytRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/gi
+    let ytRequest = ytRegex.exec(request)
+    if (!ytRequest) {return undefined}
+    if (!ytRequest[1]) {return undefined}
+
+    // Login to YT API
+    if (!process.env.GOOGLE_AUTH) {return undefined}
+    const googleAuth: GoogleKey = JSON.parse(process.env.GOOGLE_AUTH)
+    const oauth = new GoogleOAuth(googleAuth, ["https://www.googleapis.com/auth/youtube.readonly"])
+    const token = await oauth.getGoogleAuthToken()
+    let video = await fetch(`https://youtube.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&id=${ytRequest[1]}`, {
+        method: "GET",
+        headers: {
+            "Authorization": `Bearer ${token}`,
+            "Accept": "application/json",
+        }
+    })
+    if (!video || !video.ok) {return undefined}
+
+    // Format response
+    let resData = await video.json()
+    let videoData = resData.items[0]
+    let requestData = {
+        text: videoData.snippet.title,
+        code: `https://www.youtube.com/watch?v=${videoData.id}`,
+        metadata: {
+            "Source": "YouTube",
+            "Thumbnail": videoData.snippet.thumbnails.default.url,
+            "Channel": videoData.snippet.channelTitle
+        },
+    }
+    return requestData
+}
