@@ -1,5 +1,5 @@
 import {tables, useDrizzle} from "~/server/utils/drizzle";
-import {fetchSessionById, isSessionIdValid} from "~/server/utils/rrm/session";
+import {fetchSessionById, isSessionIdOpen, isSessionIdValid} from "~/server/utils/rrm/session";
 
 // Check a Request ID is valid.
 export async function isRequestIdValid(requestId: number, blocking: boolean = false) {
@@ -52,7 +52,7 @@ export async function fetchRequestsBySession(sessionId: number, blocking: boolea
 export async function createRequest(sessionId: number, user: string, request: {text: string, code: string, metadata: Record<string, string>}, blocking: boolean = false) {
     let newRequest: Array<RRM_Request> = []
     let db = useDrizzle()
-    if (await isSessionIdValid(sessionId, blocking)) {
+    if (await isSessionIdOpen(sessionId, blocking)) {
         let existing: Array<RRM_Request> = []
         try {
             existing = await useDrizzle().query.RRM_Request.findMany({
@@ -103,6 +103,8 @@ export async function createRequest(sessionId: number, user: string, request: {t
                 throw createError({statusCode: 500, statusMessage: `Failed to create new Request.`})
             }
         }
+    } else {
+        throw createError({statusCode: 400, statusMessage: `Session is not Open.`})
     }
     return newRequest
 }

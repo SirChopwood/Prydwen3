@@ -5,6 +5,13 @@ export async function isSessionIdValid(sessionId: number, blocking: boolean = fa
     return !!(await fetchSessionById(sessionId, blocking))
 }
 
+// Check if a session ID is valid.
+export async function isSessionIdOpen(sessionId: number, blocking: boolean = false) {
+    let session =  await fetchSessionById(sessionId, blocking)
+    if (!session) return false
+    return session.status === "Open"
+}
+
 // Fetch a session by its ID.
 export async function fetchSessionById(sessionId: number, blocking: boolean = false) {
     let foundSession: RRM_Session | undefined
