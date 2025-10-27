@@ -5,7 +5,7 @@ export const createSession = z.strictObject({
     "user": z.string(),
     "owner": TwitchChannel,
     "channels": z.array(TwitchChannel),
-    "sources": z.array(z.enum(["PyPy", "PlainText"])).min(1),
+    "sources": z.array(z.enum(["PyPy", "YouTube", "PlainText"])).min(1),
 })
 
 export const fetchSession = z.strictObject({

@@ -30,8 +30,8 @@ function getOwningChannel() {
 let selectedRequestTypes = ref<Record<string, boolean>>({})
 const requestTypeOptions = [
   {label: "[VRC] PyPy Dance World", value: "PyPy"},
-  {label: "[VRC] VRDancing World", value: "VRDancing"},
-  {label: "YouTube", value: "YouTube"},
+  {label: "[VRC] VRDancing World (NOT IMPLEMENTED)", value: "VRDancing"},
+  {label: "YouTube Links", value: "YouTube"},
   {label: "Plain Text", value: "PlainText"},
 ]
 // convert true/false to list of types
