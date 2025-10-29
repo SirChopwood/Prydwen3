@@ -25,6 +25,10 @@ export const fetchAchievement = z.strictObject({
     "id": z.number().min(0),
 })
 
+export const fetchUserAchievements = z.strictObject({
+    "user_id": z.string()
+})
+
 export const awardAchievement = z.strictObject({
     "token": z.string(),
     "user_name": z.string(),
