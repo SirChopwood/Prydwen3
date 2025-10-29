@@ -167,3 +167,38 @@ export const ModCorp_UserCards = sqliteTable("ModCorp_UserCards", {
         .notNull()
         .default(0)
 })
+
+// MODCORP BOT - ACHIEVEMENTS MODULE
+export const ModCorp_Achievements = sqliteTable("ModCorp_Achievements", {
+    id: integer("id")
+        .primaryKey({ autoIncrement: true }),
+
+    name: text("name")
+        .notNull(),
+
+    description: text("description")
+        .notNull(),
+
+    file: text("file")
+        .notNull(),
+
+    type: text("type", {enum: ["Medal", "Ribbon", "Participation"]})
+    .default("Medal")
+    .notNull(),
+})
+
+export const ModCorp_AwardedAchievements = sqliteTable("ModCorp_AwardedAchievements", {
+    id: integer("id")
+        .primaryKey({ autoIncrement: true }),
+
+    user_id: text("discord_user_id")
+        .notNull(),
+
+    achievement: integer("achievement")
+        .notNull(),
+
+    timestamp: text("timestamp")
+        .notNull(),
+
+    note: text("note"),
+})
