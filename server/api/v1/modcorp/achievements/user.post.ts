@@ -21,7 +21,8 @@ export default defineEventHandler(async (event) => {
                         "id": award.achievement
                     }
                 })
-                achievements[String(achievement.id)] = achievement
+                if (!achievement || !achievement[0]) {continue}
+                achievements[String(achievement[0].id)] = achievement[0]
             }
             return {awards: awards, achievements: achievements}
         } else {

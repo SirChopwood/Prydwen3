@@ -15,7 +15,8 @@ export default defineEventHandler(async (event) => {
             "name": context.body.name,
             "description": context.body.description,
             "file": context.body.file,
-            "type": context.body.type
+            "type": context.body.type,
+            "tiers": context.body.tiers,
         }).returning()
         if (newAchievement) {
             await db.insert(tables.ModCorp_Logs).values({

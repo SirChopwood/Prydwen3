@@ -7,7 +7,12 @@ export const createAchievement = z.strictObject({
     "name": z.string(),
     "description": z.string(),
     "file": z.string(),
-    "type": z.enum(["Medal", "Ribbon", "Participation"])
+    "type": z.enum(["Medal", "Ribbon", "Participation"]),
+    "tiers": z.array(z.strictObject({
+        name: z.string(),
+        description: z.string(),
+        file: z.string()
+    })).optional()
 })
 
 export const editAchievement = z.strictObject({
@@ -18,11 +23,17 @@ export const editAchievement = z.strictObject({
     "name": z.string().optional(),
     "description": z.string().optional(),
     "file": z.string().optional(),
-    "type": z.enum(["Medal", "Ribbon", "Participation"]).optional()
+    "type": z.enum(["Medal", "Ribbon", "Participation"]).optional(),
+    "tiers": z.array(z.strictObject({
+        name: z.string(),
+        description: z.string(),
+        file: z.string()
+    })).optional()
 })
 
 export const fetchAchievement = z.strictObject({
-    "id": z.number().min(0),
+    "id": z.number().min(0).optional(),
+    "all": z.boolean().optional(),
 })
 
 export const fetchUserAchievements = z.strictObject({
@@ -36,4 +47,5 @@ export const awardAchievement = z.strictObject({
     "target": z.string(),
     "achievement": z.number().min(0),
     "note": z.string().optional(),
+    "tier": z.number().min(0).optional(),
 })

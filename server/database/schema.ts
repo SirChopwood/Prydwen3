@@ -185,6 +185,9 @@ export const ModCorp_Achievements = sqliteTable("ModCorp_Achievements", {
     type: text("type", {enum: ["Medal", "Ribbon", "Participation"]})
     .default("Medal")
     .notNull(),
+
+    tiers: text("tiers", {mode: "json"})
+        .$type<Array<{name: string, description: string, file: string}>>()
 })
 
 export const ModCorp_AwardedAchievements = sqliteTable("ModCorp_AwardedAchievements", {
@@ -201,4 +204,8 @@ export const ModCorp_AwardedAchievements = sqliteTable("ModCorp_AwardedAchieveme
         .notNull(),
 
     note: text("note"),
+
+    tier: integer("tier")
+        .notNull()
+        .default(0)
 })

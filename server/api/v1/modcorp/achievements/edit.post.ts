@@ -36,6 +36,12 @@ export default defineEventHandler(async (event) => {
                 .where(eq(tables.ModCorp_Achievements.id, context.body.id))
                 .returning()
         }
+        if (context.body.tiers) {
+            result = await db.update(tables.ModCorp_Achievements)
+                .set({tiers: context.body.tiers})
+                .where(eq(tables.ModCorp_Achievements.id, context.body.id))
+                .returning()
+        }
     } catch (error) {
         console.log(error)
         throw createError({statusCode: 400, statusMessage: `Failed to edit Achievement.`})

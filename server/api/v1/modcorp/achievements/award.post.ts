@@ -15,20 +15,21 @@ export default defineEventHandler(async (event) => {
             "id": context.body.achievement
         }
     })
-    if (!achievement) {throw createError({statusCode: 400, statusMessage: `Achievement not found!`})}
+    if (!achievement || !achievement[0]) {throw createError({statusCode: 400, statusMessage: `Achievement not found!`})}
 
     try {
         let newAward = await db.insert(tables.ModCorp_AwardedAchievements).values({
             "user_id": context.body.target,
-            "achievement": achievement.id,
+            "achievement": achievement[0].id,
             "timestamp": new Date().toISOString(),
-            "note": context.body.note || ""
+            "note": context.body.note || "",
+            "tier": context.body.tier || 0,
         }).returning()
         if (newAward) {
             await db.insert(tables.ModCorp_Logs).values({
                 "user_name": context.body.user_name,
                 "user_id": context.body.user_id,
-                "action": `Awarded achievement [${achievement.id}] ${achievement.name} to user ${newAward[0].user_id}.`,
+                "action": `Awarded achievement [${achievement[0].id}] ${achievement[0].name} to user ${newAward[0].user_id}.`,
                 "reason": context.body.note || "",
                 "timestamp": new Date().toISOString()
             })
