@@ -1,4 +1,4 @@
-import {fetchModeratedChannels} from "~/server/utils/rrm/twitch";
+import {fetchPermittedChannels} from "~/server/utils/rrm/twitch";
 import {fetchSession} from "~/server/schema/rrm/session";
 import {fetchUserSession, validateRequest} from "~/server/utils/api";
 import {fetchSessionByChannel} from "~/server/utils/rrm/session";
@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
         }
     } else {
         const userSession = await fetchUserSession(event)
-        const modChannels = await fetchModeratedChannels(Number(userSession.user!.id), userSession.user!.display_name, userSession.secure!.access_token)
+        const modChannels = await fetchPermittedChannels(Number(userSession.user!.id), userSession.user!.display_name, userSession.secure!.access_token)
         if (modChannels.length > 0) {
 
             // Iterate through all modded channels

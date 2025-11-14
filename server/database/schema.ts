@@ -64,6 +64,23 @@ export const RRM_Request = sqliteTable("RRM_Request", {
         .notNull(),
 });
 
+export const RRM_Group = sqliteTable("RRM_Group", {
+    id: integer("id")
+        .primaryKey({ autoIncrement: true }),
+
+    name: text("name")
+        .notNull(),
+
+    desc: text("desc")
+        .notNull()
+        .default(""),
+
+    channels: text("channels", {mode: "json"})
+        .$type<Array<{name: String, id: Number}>>()
+        .default([])
+        .notNull(),
+});
+
 // MODCORP BOT
 export const ModCorp_Logs = sqliteTable("ModCorp_Logs", {
     id: integer("id")

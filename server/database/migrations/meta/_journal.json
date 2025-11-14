@@ -148,6 +148,13 @@
       "when": 1761932960113,
       "tag": "0020_robust_kingpin",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "6",
+      "when": 1763161749814,
+      "tag": "0021_goofy_maverick",
+      "breakpoints": true
     }
   ]
 }

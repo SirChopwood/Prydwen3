@@ -11,3 +11,4 @@ export function useDrizzle() {
 
 export type RRM_Session = typeof schema.RRM_Session.$inferSelect
 export type RRM_Request = typeof schema.RRM_Request.$inferSelect
+export type RRM_Group = typeof schema.RRM_Group.$inferSelect

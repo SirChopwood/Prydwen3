@@ -2,6 +2,40 @@ import url from "url"
 import {TwitchChannel} from "~/server/schema/rrm/twitch";
 import {z} from "zod";
 import {methods} from "netlify";
+import {RRM_Group, tables, useDrizzle} from "~/server/utils/drizzle";
+
+
+export async function fetchPermittedChannels(channelId: number, channelName: string, token: string) {
+    let channelList: Array<z.infer<typeof TwitchChannel>> = []
+
+    let modChannels = await fetchModeratedChannels(channelId, channelName, token)
+    if (modChannels.length !== 0) {channelList = channelList.concat(modChannels)}
+
+    let groupChannels = await fetchGroupChannels(channelId, channelName)
+    if (groupChannels.length !== 0) {channelList = channelList.concat(groupChannels)}
+
+    return channelList
+}
+
+export async function fetchGroupChannels(channelId: number, channelName: string) {
+    let channelList: Array<z.infer<typeof TwitchChannel>> = []
+    let channel = {id: channelId, name: channelName}
+    let groups: Array<RRM_Group> | undefined
+    groups = await useDrizzle().select().from(tables.RRM_Group).where(
+        sql`(SELECT 1 FROM json_each(channels) WHERE (value = json(${JSON.stringify(channel)})))`, // Iterate through channels to see if one matches
+    )
+    if (groups && groups.length > 0) {
+        for (let group of groups) {
+            let channels = group.channels as Array<z.infer<typeof TwitchChannel>>
+            for (let channel of channels) {
+                if (!channelList.includes(channel)) {
+                    channelList.push(channel)
+                }
+            }
+        }
+    }
+    return channelList
+}
 
 // Returns a list of usernames and ids for channels the user has moderator permissions in.
 export async function fetchModeratedChannels(channelId: number, channelName: string, token: string) {
@@ -20,11 +54,11 @@ export async function fetchModeratedChannels(channelId: number, channelName: str
     })
     if (userModsRequests.status === 200) {
         let modsData = await userModsRequests.json()
-        let streamerList: Array<z.infer<typeof TwitchChannel>> = [{id: channelId, name: channelName}]
+        let channelList: Array<z.infer<typeof TwitchChannel>> = [{id: channelId, name: channelName}]
         for (let streamer of modsData.data) {
-            streamerList.push({id: Number(streamer.broadcaster_id), name: String(streamer.broadcaster_name)})
+            channelList.push({id: Number(streamer.broadcaster_id), name: String(streamer.broadcaster_name)})
         }
-        return streamerList
+        return channelList
     } else {
         return []
     }
