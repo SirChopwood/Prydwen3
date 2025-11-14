@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
 
     if (ownerSession) {
         let result = await db.update(tables.RRM_Session)
-            .set({currentRequest: context.body.newPosition})
+            .set({currentRequest: context.body.newPosition, lastUser: context.body.user})
             .where(eq(tables.RRM_Session.id, ownerSession.id))
             .returning()
         if (result && result.length > 0) {

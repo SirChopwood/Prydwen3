@@ -20,11 +20,13 @@ export const setSession = z.strictObject({
 })
 
 export const setPosition = z.strictObject({
+    "user": z.string(),
     "sessionId": z.number(),
     "newPosition": z.number().min(0)
 })
 
 export const setStatus = z.strictObject({
+    "user": z.string(),
     "sessionId": z.number(),
     "status": z.enum(["Open", "Locked", "Closed"])
 })
