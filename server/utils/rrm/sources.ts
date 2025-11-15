@@ -35,15 +35,14 @@ export async function PyPy(request: string) {
             requestData.metadata["Source"] = "PyPy"
             requestData.metadata["Group"] = data.groups[song.g]
             requestData.metadata["Duration"] = String(song.e)
-            // try {
-            //     let video = await YTSearch({videoId: song.originalUrl[0]})
-            //
-            //     if (video) {
-            //         requestData.metadata["Thumbnail"] = video.thumbnail
-            //     }
-            // } catch (e) {
-            //     console.log("Could not find thumbnail")
-            // }
+            try {
+                let videoData = await FetchYouTubeVideo(song.o[0])
+                requestData.metadata["Thumbnail"] = videoData.snippet.thumbnails.default.url
+                requestData.metadata["Channel"] = videoData.snippet.channelTitle
+            } catch (e) {
+                console.log(`Error fetching YouTube Video for PyPy song ${song.i}`)
+                console.error(e)
+            }
             return requestData
         }
     }
@@ -59,9 +58,24 @@ export async function PlainText(request: string) {
 }
 
 export async function YouTube(request: string) {
+    let videoData = await FetchYouTubeVideo(request)
+
+    let requestData = {
+        text: videoData.snippet.title,
+        code: `https://www.youtube.com/watch?v=${videoData.id}`,
+        metadata: {
+            "Source": "YouTube",
+            "Thumbnail": videoData.snippet.thumbnails.default.url,
+            "Channel": videoData.snippet.channelTitle
+        },
+    }
+    return requestData
+}
+
+async function FetchYouTubeVideo(url: string) {
     // Filter YT video ID
     const ytRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/gi
-    let ytRequest = ytRegex.exec(request)
+    let ytRequest = ytRegex.exec(url)
     if (!ytRequest) {return undefined}
     if (!ytRequest[1]) {return undefined}
 
@@ -81,15 +95,5 @@ export async function YouTube(request: string) {
 
     // Format response
     let resData = await video.json()
-    let videoData = resData.items[0]
-    let requestData = {
-        text: videoData.snippet.title,
-        code: `https://www.youtube.com/watch?v=${videoData.id}`,
-        metadata: {
-            "Source": "YouTube",
-            "Thumbnail": videoData.snippet.thumbnails.default.url,
-            "Channel": videoData.snippet.channelTitle
-        },
-    }
-    return requestData
+    return resData.items[0]
 }
