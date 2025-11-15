@@ -378,7 +378,7 @@ class RRM_Request_Manager {
             if (value < 0 && value > Object.keys(this.requestList.value).length) {
                 return false
             }
-            this.webSocket.send(JSON.stringify({ type: "Position", data: {sessionId: this.currentSessionId.value, position: value} }))
+            this.webSocket.send(JSON.stringify({ type: "Position", data: {sessionId: this.currentSessionId.value, position: value, user: this.hostName.value} }))
             await this.refreshSessions()
             console.log(`Current Request set to ${value}`)
             return true
@@ -393,7 +393,7 @@ class RRM_Request_Manager {
         if (this.getCurrentSession && this.webSocket) {
             this.webSocket.send(JSON.stringify({
                 type: "Status",
-                data: {sessionId: this.currentSessionId.value, status: value}
+                data: {sessionId: this.currentSessionId.value, status: value, user: this.hostName.value}
             }))
             await this.refreshSessions()
             console.log(`Current Status set to ${value}`)

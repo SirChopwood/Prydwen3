@@ -50,7 +50,8 @@ export default defineWebSocketHandler({
                 if (data.sessionId) {
                     await $fetch("/api/v1/rrm/session/position", {method: "POST", body: JSON.stringify({
                         sessionId: data.sessionId,
-                        newPosition: data.position
+                        newPosition: data.position,
+                        user: data.user
                     })})
                 }
                 break
@@ -58,7 +59,8 @@ export default defineWebSocketHandler({
                 if (data.sessionId) {
                     await $fetch("/api/v1/rrm/session/status", {method: "POST", body: JSON.stringify({
                             sessionId: data.sessionId,
-                            status: data.status
+                            status: data.status,
+                            user: data.user
                         })})
                 }
                 break
