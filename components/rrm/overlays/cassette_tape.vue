@@ -23,7 +23,7 @@ function updateRefs(song: any) {
   <div class="relative">
     <div class="text-sm relative sour-gummy w-44 h-auto shrink-0">
       <nuxt-img src="/images/rrm/overlays/cassette/TapeBase.png" class="static" :style="randomHue"/>
-      <div class="absolute right-[4%] w-[18%] top-[20%]">
+      <div class="absolute right-[4%] w-[18%] top-[32%]">
         <nuxt-img :src="song.metadata.Thumbnail" class="object-cover h-full w-full"/>
       </div>
       <nuxt-img :src="randomLabel" class="absolute top-0"/>
