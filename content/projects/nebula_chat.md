@@ -12,6 +12,7 @@ buttonTexts:
   - "GitHub"
 buttonLinks:
   - "https://github.com/SirChopwood/DwarvesVSZombies"
+hidden: "false"
 ---
 ## Overview
 One of the core elements of the game [Space Station 13](https://spacestation13.com/) (SS13) is the iconic Chat Box. The UI for the chat takes up a considerable area of the screen, ranging from a quarter to half depending on preferences. It is also where a lot of the action actually occurs in the game. For example any kind of discussion, talking, radio chatter and even in character mental notes are all conveyed through the different fonts and styles displayed within the chat.

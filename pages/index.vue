@@ -20,7 +20,10 @@
   })
   const { data: sortedProjects } = await useAsyncData("projects", () => {
     // Order ensures projects are loaded in date order, else its alphabetical
-    return queryCollection("projects").order("timestamp", "DESC").all()
+    return queryCollection('projects')
+        .where('hidden', "=", 'false')
+        .order('timestamp', 'DESC')
+        .all()
   })
 </script>
 
@@ -76,7 +79,7 @@ export default defineComponent({
           <projects-card title="Rami's Request Manager"
                          thumbnail="/images/projects/external/rrm.png"
                          link="/rrm"
-                         :project-tags="['External Link', 'Open Source', 'Solo']">
+                         :project-tags="['External Link', 'Open Source', 'Solo', 'JS/Node']">
             A twitch panel and overlay for managing chat based interaction, such as song requests for DJs.
           </projects-card>
           <projects-card title="Ramiris' Heresy"

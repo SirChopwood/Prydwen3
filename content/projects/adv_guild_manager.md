@@ -12,6 +12,7 @@ buttonTexts:
 buttonLinks:
   - "https://github.com/SirChopwood/Masters-Project"
   - "https://sirchopwood.itch.io/aventurers-guild-manager"
+hidden: "false"
 ---
 
 # Chapter 1

@@ -8,6 +8,7 @@ thumbnail: "/images/projects/munitions_officer_sim/nanotrasen_logo.png"
 timestamp: 1698796800
 buttonTexts:
 buttonLinks:
+hidden: "false"
 ---
 
 <iframe width="854" height="480" src="https://www.youtube.com/embed/8z7NPgZNUYU?si=6T502YgYt7Khfw0M" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen style="margin-left:auto;margin-right:auto;"></iframe>

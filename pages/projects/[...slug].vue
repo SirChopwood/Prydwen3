@@ -28,10 +28,17 @@ export default defineComponent({
 <template>
   <Title>{{ page.title }}</Title>
   <div class="px-4 w-full md:w-2/3 h-full md:mx-auto flex flex-col justify-center justify-items-center">
-    <div ref="ButtonBox" v-if="page" class="flex flex-row gap-4 p-2 stripes-primary border-b-2 border-primary">
-      <div class="text-xl md:text-5xl text-white font-bold bg-neutral-800 px-1">{{page.title}}</div>
-      <div class="grow"><!--Spacer--></div>
-      <codeblock-button v-for="(text, index) in page.buttonTexts" :link="page.buttonLinks[index]">{{text}}</codeblock-button>
+    <div ref="ButtonBox" v-if="page" class="p-2 stripes-primary border-b-2 border-primary">
+      <div class="px-1 flex gap-1 flex-col">
+        <div class="flex flex-row gap-4">
+          <div class="codeblock w-fit">{{ new Date(Math.floor(page.timestamp*1000)).toLocaleString("EN-GB", {dateStyle: "short"}) }}</div>
+          <div class="grow"><!--Spacer--></div>
+          <codeblock-button v-for="(text, index) in page.buttonTexts" :link="page.buttonLinks[index]">
+            <span class="after:content-['_↗'] text-nowrap">{{text}}</span>
+          </codeblock-button>
+        </div>
+        <div class="text-xl md:text-5xl codeblock text-white font-bold px-1 pb-1 w-fit">{{page.title}}</div>
+      </div>
     </div>
     <ContentRenderer v-if="page" :value="page" class="prose flex flex-col justify-center justify-items-center"/>
   </div>

@@ -8,6 +8,8 @@ const Tags = {
   "Teamwork": "teal", //  `<div class="bg-teal-950 hover:bg-teal-900 outline-teal-600 text-teal-100">`
   "Modelling": "orange", //  `<div class="bg-orange-950 hover:bg-orange-900 outline-orange-600 text-orange-100">`
   "JS/Node": "green", //  `<div class="bg-green-950 hover:bg-green-900 outline-green-600 text-green-100">`
+  "Godot": "sky", //  `<div class="bg-sky-950 hover:bg-sky-900 outline-sky-600 text-sky-100">`
+  "C#": "fuchsia", //  `<div class="bg-fuchsia-950 hover:bg-fuchsia-900 outline-fuchsia-600 text-fuchsia-100">`
   "Work-In-Progress": "yellow", //  `<div class="bg-yellow-950 hover:bg-yellow-900 outline-yellow-600 text-yellow-100">`
   "External Link": "purple", //  `<div class="bg-purple-950 hover:bg-purple-900 outline-purple-600 text-purple-100">`
 }

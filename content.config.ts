@@ -13,6 +13,7 @@ export default defineContentConfig({
                 tags: z.array(z.string()),
                 buttonTexts: z.array(z.string()),
                 buttonLinks: z.array(z.string()),
+                hidden: z.string(),
             })
         })
     }

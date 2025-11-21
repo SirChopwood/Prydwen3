@@ -11,6 +11,7 @@ buttonTexts:
   - "GitHub"
 buttonLinks:
   - "https://github.com/SirChopwood/DwarvesVSZombies"
+hidden: "true"
 ---
 ## Overview
 [Dwarves VS Zombies](https://dwarves-vs-zombies.fandom.com/wiki/Dwarves_vs._Zombies_Wiki) is an old game built within Minecraft's engine by Robert Moran (Rawb). I have very fond memories of sinking countless hours into playing this game. Its systems were very fun and interesting and it was a great shame the servers had to go down. Since then I have always desired to relive those experiences hence why I'm looking to make my own take on the project.

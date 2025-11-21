@@ -8,6 +8,7 @@ thumbnail: "/images/projects/siege_and_shield/promo_poster2.png"
 timestamp: 1688166000
 buttonTexts:
 buttonLinks:
+hidden: "false"
 ---
 
 # Chapter 1

@@ -4,6 +4,7 @@ description: "Coordinated Sprite work, public repository triage and system imple
 tags:
   - "Teamwork"
   - "Open Source"
+  - "C#"
   - "Work-In-Progress"
 thumbnail: "/images/projects/rmc14/coverimage.png"
 timestamp: 1746850501
@@ -11,6 +12,7 @@ buttonTexts:
   - "GitHub"
 buttonLinks:
   - "https://github.com/RMC-14/RMC-14"
+hidden: "false"
 ---
 
 # Introduction
