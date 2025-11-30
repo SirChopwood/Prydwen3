@@ -7,7 +7,12 @@ export const createTeam = z.strictObject({
     "name": z.string(),
     "description": z.string(),
     "colour": z.string(),
-    "logo_url": z.string()
+    "logo_url": z.string(),
+    "discord": z.strictObject({
+        "role": z.string(),
+        "channel": z.string(),
+        "server": z.string(),
+    })
 })
 
 export const editTeam = z.strictObject({

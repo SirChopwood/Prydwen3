@@ -17,6 +17,7 @@ export default defineEventHandler(async (event) => {
             "description": context.body.description,
             "colour": context.body.colour,
             "logo_url": context.body.logo_url,
+            "discord": context.body.discord,
         }).returning()
         if (newTeam) {
             await db.insert(tables.ModCorp_Logs).values({
